@@ -1,7 +1,7 @@
 {
-  "name": "service-name",
+  "name": "k8s-job-chief",
   "version": "1.0.0",
-  "description": "This is template for map colonies typescript service",
+  "description": "service for starting and tracking k8s jobs",
   "main": "./src/index.ts",
   "scripts": {
     "test:unit": "jest --config=./tests/configurations/unit/jest.config.js",

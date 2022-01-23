@@ -19,7 +19,7 @@ caSecretName: ''
 caKey: 'ca.crt'
 
 image:
-  repository: ts-server-boilerplate
+  repository: k8s-job-chief
   tag: 'latest'
 
 env:

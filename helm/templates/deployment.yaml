@@ -1,8 +1,8 @@
 {{- $releaseName := .Release.Name -}}
-{{- $chartName := include "ts-server-boilerplate.name" . -}}
-{{- $cloudProviderFlavor := include "ts-server-boilerplate.cloudProviderFlavor" . -}}
-{{- $cloudProviderDockerRegistryUrl := include "ts-server-boilerplate.cloudProviderDockerRegistryUrl" . -}}
-{{- $imageTag := include "ts-server-boilerplate.tag" . -}}
+{{- $chartName := include "job-chief.name" . -}}
+{{- $cloudProviderFlavor := include "job-chief.cloudProviderFlavor" . -}}
+{{- $cloudProviderDockerRegistryUrl := include "job-chief.cloudProviderDockerRegistryUrl" . -}}
+{{- $imageTag := include "job-chief.tag" . -}}
 {{- if .Values.enabled -}}
 apiVersion: apps/v1
 kind: Deployment
@@ -11,9 +11,9 @@ metadata:
   labels:
     app: {{ $chartName }}
     component: {{ $chartName }}
-    environment: {{ include "ts-server-boilerplate.environment" . }}
+    environment: {{ include "job-chief.environment" . }}
     release: {{ $releaseName }}
-    {{- include "ts-server-boilerplate.labels" . | nindent 4 }}
+    {{- include "job-chief.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
@@ -21,14 +21,14 @@ spec:
       app: {{ $chartName }}
       release: {{ $releaseName }}
       run: {{ $releaseName }}-{{ $chartName }}
-      {{- include "ts-server-boilerplate.selectorLabels" . | nindent 6 }}
+      {{- include "job-chief.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
         app: {{ $chartName }}
         release: {{ $releaseName }}
         run: {{ $releaseName }}-{{ $chartName }}
-        {{- include "ts-server-boilerplate.selectorLabels" . | nindent 8 }}
+        {{- include "job-chief.selectorLabels" . | nindent 8 }}
     spec:
     {{- if .Values.cloudProvider.imagePullSecretName }}
       imagePullSecrets:
@@ -39,12 +39,6 @@ spec:
           {{- with .Values.image }}
           image: {{ $cloudProviderDockerRegistryUrl }}{{ .repository }}:{{ $imageTag }}
           {{- end }}
-          volumeMounts:
-            {{- if .Values.caSecretName and .Values.caKey }}
-            - mountPath: '/usr/local/share/ca-certificates'
-              name: root-ca
-              subPath: {{ quote .Values.caKey }}
-            {{- end }}
           env:
             - name: SERVER_PORT
               value: {{ .Values.env.targetPort | quote }}
@@ -67,6 +61,12 @@ spec:
           {{- if .Values.resources.enabled }}
           resources:
             {{- toYaml .Values.resources.value | nindent 12 }}
+          {{- end }}
+          {{- if .Values.caSecretName and .Values.caKey }}
+          volumeMounts:
+            - mountPath: '/usr/local/share/ca-certificates'
+              name: root-ca
+              subPath: {{ quote .Values.caKey }}
           {{- end }}
       volumes:
         {{- if .Values.caSecretName }}
