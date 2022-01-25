@@ -64,28 +64,28 @@ type GetResourceHandler = RequestHandler<undefined, any>;
 
 //     if (res.response.statusCode === httpStatus.CREATED) {
 //       const uid = res.body.metadata?.uid;
-      // watch
-      //   .watch(
-      //     '/api/v1/namespaces/default/pods',
-      //     {},
-      //     (phase, apiObj, watchObj) => {
-      //       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      //       console.log(phase, apiObj.object.status, watchObj);
-      //     },
-      //     console.error
-      //   )
-      //   .then((req) => {
-      //     // watch returns a request object which you can use to abort the watch.
-      //     setTimeout(() => {
-      //       // eslint-disable-next-line
-      //       req.abort();
-      //       // eslint-disable-next-line @typescript-eslint/no-magic-numbers
-      //     }, 10 * 10000000);
-      //   })
-      //   .catch(console.error);
-  //   }
-  // })
-  // .catch(console.error);
+// watch
+//   .watch(
+//     '/api/v1/namespaces/default/pods',
+//     {},
+//     (phase, apiObj, watchObj) => {
+//       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+//       console.log(phase, apiObj.object.status, watchObj);
+//     },
+//     console.error
+//   )
+//   .then((req) => {
+//     // watch returns a request object which you can use to abort the watch.
+//     setTimeout(() => {
+//       // eslint-disable-next-line
+//       req.abort();
+//       // eslint-disable-next-line @typescript-eslint/no-magic-numbers
+//     }, 10 * 10000000);
+//   })
+//   .catch(console.error);
+//   }
+// })
+// .catch(console.error);
 
 // watch
 //   .watch('/apis/batch/v1/namespaces/default/jobs', {}, (phase, apiObj, watchObj) => {

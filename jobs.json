@@ -1,0 +1,8 @@
+{
+  "queueName": "avi",
+  "parallelism": 1,
+  "image": "perl",
+  "command": ["sleep", "15"],
+  "injectPgConfig": false,
+  "pullPolicy": "Never"
+}

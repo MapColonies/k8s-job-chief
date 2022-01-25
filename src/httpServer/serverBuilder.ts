@@ -18,7 +18,7 @@ export class ServerBuilder {
   public constructor(
     @inject(SERVICES.CONFIG) private readonly config: IConfig,
     @inject(SERVICES.LOGGER) private readonly logger: Logger,
-    @inject(RESOURCE_NAME_ROUTER_SYMBOL) private readonly resourceNameRouter: Router,
+    @inject(RESOURCE_NAME_ROUTER_SYMBOL) private readonly resourceNameRouter: Router
   ) {
     this.serverInstance = express();
   }

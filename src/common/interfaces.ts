@@ -13,7 +13,6 @@ export interface OpenApiConfig {
 }
 
 export interface JobConfig {
-  name: string;
   queueName: string;
   parallelism: number;
   image: string;
@@ -23,6 +22,6 @@ export interface JobConfig {
   environment?: Record<string, string>;
   configmaps?: string[];
   secrets?: string[];
-  resources: k8s.V1ResourceRequirements;
+  resources?: k8s.V1ResourceRequirements;
   pullPolicy: 'Always' | 'IfNotPresent' | 'Never';
 }

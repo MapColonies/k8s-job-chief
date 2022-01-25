@@ -1,4 +1,4 @@
-import { DatabaseOptions } from "pg-boss";
+import { DatabaseOptions } from 'pg-boss';
 
 export type DbConfig = {
   enableSslAuth: boolean;
