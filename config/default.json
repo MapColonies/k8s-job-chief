@@ -25,6 +25,9 @@
       }
     }
   },
+  "app": {
+    "instanceUid": "AAAAAA"
+  },
   "db": {
     "host": "localhost",
     "port": 5432,
@@ -37,5 +40,8 @@
       "cert": ""
     },
     "database": "postgres"
+  },
+  "kubernetes": {
+    "namespace": "default"
   }
 }

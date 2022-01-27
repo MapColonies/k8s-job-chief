@@ -12,5 +12,9 @@ export const SERVICES: Record<string, symbol> = {
   CONFIG: Symbol('Config'),
   TRACER: Symbol('Tracer'),
   METER: Symbol('Meter'),
+  KUBE_CONFIG: Symbol('KubeConfig'),
+  K8S_API: Symbol('K8sApi'),
+  K8S_JOB_API: Symbol('K8sJobApi'),
+  K8S_JOB_INFORMER: Symbol('K8sJobInformer'),
 };
 /* eslint-enable @typescript-eslint/naming-convention */

@@ -1,38 +1,48 @@
 import { readFile } from 'fs/promises';
 import { Application } from 'express';
+import * as k8s from '@kubernetes/client-node';
 import { registerExternalValues, RegisterOptions } from './containerConfig';
 import { ServerBuilder } from './httpServer/serverBuilder';
 import { JobConfig } from './common/interfaces';
-import { JobManager } from './k8s/jobManager';
+import { Job } from './k8s/job';
+import { SERVICES } from './common/constants';
 
 async function getApp(registerOptions?: RegisterOptions): Promise<Application> {
   const container = await registerExternalValues(registerOptions);
   const app = container.resolve(ServerBuilder).build();
 
-  const job = JSON.parse(await readFile('jobs.json', 'utf8')) as JobConfig;
-
-  const manager = container.resolve(JobManager);
-  await manager.start();
-  try {
-    const uid = await manager.createJob({
-      apiVersion: 'batch/v1',
-      kind: 'Job',
-      metadata: { name: job.queueName },
-      spec: {
-        template: {
-          metadata: { name: job.queueName },
-          spec: { containers: [{ name: 'pi', imagePullPolicy: job.pullPolicy, image: job.image, command: job.command }], restartPolicy: 'Never' },
+  const jobRawConfig = JSON.parse(await readFile('jobs.json', 'utf8')) as JobConfig;
+  const jobConfig: k8s.V1Job = {
+    apiVersion: 'batch/v1',
+    kind: 'Job',
+    metadata: { generateName: jobRawConfig.queueName + '-', labels: { avi: 'lol' } },
+    spec: {
+      template: {
+        metadata: { name: jobRawConfig.queueName },
+        spec: {
+          containers: [{ name: 'pi', imagePullPolicy: jobRawConfig.pullPolicy, image: jobRawConfig.image, command: jobRawConfig.command }],
+          restartPolicy: 'Never',
         },
-        backoffLimit: 0,
       },
-    });
-  } catch (error) {
-    console.log(error);
-  }
+      backoffLimit: 0,
+    },
+  };
+  const kc = container.resolve<k8s.KubeConfig>(SERVICES.K8S_CONFIG);
 
-  manager.on('completed', (uid) => {
+  const k8sJobApi = container.resolve<k8s.BatchV1Api>(SERVICES.K8S_JOB_API);
+  const jobInformer = k8s.makeInformer(kc, '/apis/batch/v1/namespaces/default/jobs', async () => k8sJobApi.listNamespacedJob('default'));
+  await jobInformer.start();
+
+  const job = new Job(kc, container.resolve<k8s.CoreV1Api>(SERVICES.K8S_API), k8sJobApi, jobInformer, jobConfig);
+  const uid = await job.startJob();
+
+  job.on('completed', () => {
     console.log('job completed', uid);
   });
+
+  job.on('failed', (reason) => {
+    console.log('job failed', reason);
+  })
 
   return app;
 }

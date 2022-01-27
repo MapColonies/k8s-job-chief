@@ -57,5 +57,12 @@
       "cert": "DB_CERT_PATH"
     },
     "database": "DB_NAME"
+  },
+  "app": {
+    "instanceUid": "APP_INSTANCE_UID"
+  },
+  "kubernetes": {
+    "namespace": "K8S_NAMESPACE",
+    "pullSecret": "K8S_PULL_SECRET"
   }
 }
