@@ -42,7 +42,7 @@ async function getApp(registerOptions?: RegisterOptions): Promise<Application> {
 
   job.on('failed', (reason) => {
     console.log('job failed', reason);
-  })
+  });
 
   return app;
 }

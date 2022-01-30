@@ -13,6 +13,7 @@ import { InjectionObject, registerDependencies } from './common/dependencyRegist
 import { DbConfig } from './queue/interfaces';
 import { pgBossFactory } from './queue';
 import { JOB_LABELS_SYMBOL } from './k8s/constants';
+import { flattenLabels } from './common/utils';
 
 export interface RegisterOptions {
   override?: InjectionObject<unknown>[];
@@ -30,17 +31,26 @@ export const registerExternalValues = async (options?: RegisterOptions): Promise
   const pgBossOptions = config.get<DbConfig>('db');
   const pgBoss = await pgBossFactory(pgBossOptions);
 
-  const jobLabels:Record<string, string> = {
+  const jobLabels: Record<string, string> = {
     app: 'job-chief',
-    "owner-id": config.get('app.instanceUid'),
+    'owner-id': config.get('app.instanceUid'),
     environment: process.env.NODE_ENV ?? 'development',
-  }
+  };
 
   const kubeConfig = new k8s.KubeConfig();
 
   kubeConfig.loadFromDefault();
   const k8sApi = kubeConfig.makeApiClient(k8s.CoreV1Api);
   const k8sJobApi = kubeConfig.makeApiClient(k8s.BatchV1Api);
+
+  const jobInformer = k8s.makeInformer(
+    kubeConfig,
+    '/apis/batch/v1/namespaces/default/jobs',
+    async () => k8sJobApi.listNamespacedJob('default'),
+    flattenLabels(jobLabels)
+  );
+
+  await jobInformer.start();
 
   tracing.start();
   const tracer = trace.getTracer(SERVICE_NAME);
@@ -50,18 +60,19 @@ export const registerExternalValues = async (options?: RegisterOptions): Promise
     { token: SERVICES.LOGGER, provider: { useValue: logger } },
     { token: SERVICES.TRACER, provider: { useValue: tracer } },
     { token: SERVICES.METER, provider: { useValue: meter } },
-    { token: JOB_LABELS_SYMBOL, provider: {useValue: jobLabels}},
+    { token: JOB_LABELS_SYMBOL, provider: { useValue: jobLabels } },
     { token: PgBoss, provider: { useValue: pgBoss } },
     { token: SERVICES.K8S_API, provider: { useValue: k8sApi } },
     { token: SERVICES.K8S_JOB_API, provider: { useValue: k8sJobApi } },
     { token: SERVICES.K8S_CONFIG, provider: { useValue: kubeConfig } },
+    { token: SERVICES.K8S_JOB_INFORMER, provider: { useValue: jobInformer } },
     { token: RESOURCE_NAME_ROUTER_SYMBOL, provider: { useFactory: resourceNameRouterFactory } },
     {
       token: 'onSignal',
       provider: {
         useValue: {
           useValue: async (): Promise<void> => {
-            await Promise.all([tracing.stop(), metrics.stop()]);
+            await Promise.all([tracing.stop(), metrics.stop(), jobInformer.stop()]);
           },
         },
       },

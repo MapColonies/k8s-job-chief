@@ -7,7 +7,7 @@ import { JobConfig, K8sConfig } from './interfaces';
 
 export const jobFactory = (container: DependencyContainer): ((jobConfig: JobConfig, initTimeoutMs: number) => Job) => {
   const config = container.resolve<IConfig>(SERVICES.CONFIG);
-  const instanceUid = config.get<string>("app.instanceUid");
+  const instanceUid = config.get<string>('app.instanceUid');
   const k8sConfig = config.get<K8sConfig>('kubernetes');
   const kubeConfig = container.resolve<k8s.KubeConfig>(SERVICES.KUBE_CONFIG);
   const k8sApi = container.resolve<k8s.CoreV1Api>(SERVICES.K8S_API);
