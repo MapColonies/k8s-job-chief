@@ -29,6 +29,8 @@ void getApp()
   })
   .catch(async (error: Error) => {
     console.error('😢 - failed initializing the server');
+    console.log(error);
+
     console.error(error.message);
     if (container.isRegistered('onSignal')) {
       const shutDown: () => Promise<void> = container.resolve('onSignal');

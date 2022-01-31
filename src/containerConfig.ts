@@ -6,6 +6,7 @@ import { DependencyContainer } from 'tsyringe/dist/typings/types';
 import jsLogger, { LoggerOptions } from '@map-colonies/js-logger';
 import { Metrics } from '@map-colonies/telemetry';
 import PgBoss from 'pg-boss';
+import { instancePerContainerCachingFactory } from 'tsyringe';
 import { SERVICES, SERVICE_NAME } from './common/constants';
 import { tracing } from './common/tracing';
 import { resourceNameRouterFactory, RESOURCE_NAME_ROUTER_SYMBOL } from './httpServer/resourceName/routes/resourceNameRouter';
@@ -13,7 +14,9 @@ import { InjectionObject, registerDependencies } from './common/dependencyRegist
 import { DbConfig } from './queue/interfaces';
 import { pgBossFactory } from './queue';
 import { JOB_LABELS_SYMBOL } from './k8s/constants';
-import { flattenLabels } from './common/utils';
+import { flattenLabels } from './k8s/utils';
+import { jobFactoryForDi } from './k8s/jobFactory';
+import { K8sConfig } from './k8s/interfaces';
 
 export interface RegisterOptions {
   override?: InjectionObject<unknown>[];
@@ -22,6 +25,7 @@ export interface RegisterOptions {
 
 export const registerExternalValues = async (options?: RegisterOptions): Promise<DependencyContainer> => {
   const loggerConfig = config.get<LoggerOptions>('telemetry.logger');
+
   // @ts-expect-error the signature is wrong
   const logger = jsLogger({ ...loggerConfig, prettyPrint: loggerConfig.prettyPrint, hooks: { logMethod } });
 
@@ -43,11 +47,14 @@ export const registerExternalValues = async (options?: RegisterOptions): Promise
   const k8sApi = kubeConfig.makeApiClient(k8s.CoreV1Api);
   const k8sJobApi = kubeConfig.makeApiClient(k8s.BatchV1Api);
 
+  const k8sConfig = config.get<K8sConfig>('kubernetes');
+  const flattenedLabels = flattenLabels(jobLabels);
+
   const jobInformer = k8s.makeInformer(
     kubeConfig,
-    '/apis/batch/v1/namespaces/default/jobs',
-    async () => k8sJobApi.listNamespacedJob('default'),
-    flattenLabels(jobLabels)
+    `/apis/batch/v1/namespaces/${k8sConfig.namespace}/jobs`,
+    async () => k8sJobApi.listNamespacedJob(k8sConfig.namespace, undefined, undefined, undefined, undefined, flattenedLabels),
+    flattenedLabels
   );
 
   await jobInformer.start();
@@ -62,10 +69,12 @@ export const registerExternalValues = async (options?: RegisterOptions): Promise
     { token: SERVICES.METER, provider: { useValue: meter } },
     { token: JOB_LABELS_SYMBOL, provider: { useValue: jobLabels } },
     { token: PgBoss, provider: { useValue: pgBoss } },
+    { token: SERVICES.K8S_CONFIG, provider: { useValue: kubeConfig } },
     { token: SERVICES.K8S_API, provider: { useValue: k8sApi } },
     { token: SERVICES.K8S_JOB_API, provider: { useValue: k8sJobApi } },
-    { token: SERVICES.K8S_CONFIG, provider: { useValue: kubeConfig } },
     { token: SERVICES.K8S_JOB_INFORMER, provider: { useValue: jobInformer } },
+    { token: SERVICES.METRICS, provider: { useValue: metrics } },
+    { token: SERVICES.K8S_JOB_FACTORY, provider: { useFactory: instancePerContainerCachingFactory(jobFactoryForDi) } },
     { token: RESOURCE_NAME_ROUTER_SYMBOL, provider: { useFactory: resourceNameRouterFactory } },
     {
       token: 'onSignal',

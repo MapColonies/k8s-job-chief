@@ -13,6 +13,7 @@ export interface JobConfig {
   args?: string[];
   injectPgConfig?: boolean;
   environment?: Record<string, string>;
+  env?: k8s.V1EnvVar[];
   configmaps?: string[];
   secrets?: string[];
   resources?: k8s.V1ResourceRequirements;

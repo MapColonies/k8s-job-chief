@@ -38,8 +38,11 @@ export class Job extends TypedEmitter<JobEvents> {
     }
     this.name = res.body.metadata?.name;
 
-    this.podInformer = k8s.makeInformer(this.kubeConfig, `/api/v1/namespaces/${this.namespace}/pods`, async () =>
-      this.k8sApi.listNamespacedPod(this.namespace, undefined, undefined, undefined, undefined, 'job-name=' + (this.name as string))
+    this.podInformer = k8s.makeInformer(
+      this.kubeConfig,
+      `/api/v1/namespaces/${this.namespace}/pods`,
+      async () => this.k8sApi.listNamespacedPod(this.namespace, undefined, undefined, undefined, undefined, 'job-name=' + (this.name as string)),
+      'job-name=' + (this.name as string)
     );
 
     this.initTimeout = setTimeout(() => {

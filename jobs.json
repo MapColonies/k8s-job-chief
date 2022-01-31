@@ -1,8 +1,8 @@
 {
   "queueName": "avi",
   "parallelism": 1,
-  "image": "perlss",
-  "command": ["perl", "-Mbignum=bpi", "-wle", "print bpi(2000)"],
+  "image": "avi",
+  "command": ["perl", "-Mbignum=bpi", "-wle", "exo"],
   "injectPgConfig": false,
-  "pullPolicy": "Never"
+  "pullPolicy": "Always"
 }

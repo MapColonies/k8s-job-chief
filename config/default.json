@@ -26,7 +26,7 @@
     }
   },
   "app": {
-    "instanceUid": "AAAAAA"
+    "instanceUid": "aaaaaa"
   },
   "db": {
     "host": "localhost",
