@@ -1,3 +1,4 @@
+import { readFile } from 'fs/promises';
 import config from 'config';
 import { logMethod } from '@map-colonies/telemetry';
 import { trace } from '@opentelemetry/api';
@@ -17,6 +18,8 @@ import { JOB_LABELS_SYMBOL } from './k8s/constants';
 import { flattenLabels } from './k8s/utils';
 import { jobFactoryForDi } from './k8s/jobFactory';
 import { K8sConfig } from './k8s/interfaces';
+import { validateJobConfig } from './manager/schemas';
+import { JOBS_CONFIG_SYMBOL } from './manager/constants';
 
 export interface RegisterOptions {
   override?: InjectionObject<unknown>[];
@@ -31,6 +34,10 @@ export const registerExternalValues = async (options?: RegisterOptions): Promise
 
   const metrics = new Metrics(SERVICE_NAME);
   const meter = metrics.start();
+
+  const jobsConfigRaw = await readFile(config.get('app.configPath'), 'utf8');
+  const jobsConfig = validateJobConfig(JSON.parse(jobsConfigRaw));
+
 
   const pgBossOptions = config.get<DbConfig>('db');
   const pgBoss = await pgBossFactory(pgBossOptions);
@@ -67,6 +74,7 @@ export const registerExternalValues = async (options?: RegisterOptions): Promise
     { token: SERVICES.LOGGER, provider: { useValue: logger } },
     { token: SERVICES.TRACER, provider: { useValue: tracer } },
     { token: SERVICES.METER, provider: { useValue: meter } },
+    { token: JOBS_CONFIG_SYMBOL, provider: {useValue: jobs} }
     { token: JOB_LABELS_SYMBOL, provider: { useValue: jobLabels } },
     { token: PgBoss, provider: { useValue: pgBoss } },
     { token: SERVICES.K8S_CONFIG, provider: { useValue: kubeConfig } },

@@ -26,7 +26,8 @@
     }
   },
   "app": {
-    "instanceUid": "aaaaaa"
+    "instanceUid": "aaaaaa",
+    "configPath": "./config.json"
   },
   "db": {
     "host": "localhost",

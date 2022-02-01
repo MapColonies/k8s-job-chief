@@ -59,7 +59,8 @@
     "database": "DB_NAME"
   },
   "app": {
-    "instanceUid": "APP_INSTANCE_UID"
+    "instanceUid": "APP_INSTANCE_UID",
+    "configPath": "APP_CONFIG_PATH"
   },
   "kubernetes": {
     "namespace": "K8S_NAMESPACE",

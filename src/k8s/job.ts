@@ -20,7 +20,8 @@ export class Job extends TypedEmitter<JobEvents> {
     private readonly jobInformer: k8s.Informer<k8s.V1Job>,
     private readonly jobSpec: k8s.V1Job,
     private readonly namespace: string,
-    private readonly initTimeoutMs: number
+    private readonly initTimeoutMs: number,
+    public readonly queueName: string
   ) {
     super();
     this.jobInformer.on('update', this.handleJobInformerUpdateEvent);

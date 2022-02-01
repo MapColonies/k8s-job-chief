@@ -5,17 +5,15 @@ export interface K8sConfig {
   pullSecret?: string;
 }
 
-export interface JobConfig {
-  queueName: string;
+export interface PodConfig {
   parallelism: number;
   image: string;
   command?: string[];
   args?: string[];
-  injectPgConfig?: boolean;
-  environment?: Record<string, string>;
-  env?: k8s.V1EnvVar[];
+  injectPgConfig: boolean;
+  env?: { name: string; value: string }[];
   configmaps?: string[];
   secrets?: string[];
-  resources?: k8s.V1ResourceRequirements;
+  resources?: { limits: { cpu: string; memory: string }; requests: { cpu: string; memory: string } };
   pullPolicy: 'Always' | 'IfNotPresent' | 'Never';
 }
