@@ -1,5 +1,3 @@
-import * as k8s from '@kubernetes/client-node';
-
 export interface K8sConfig {
   namespace: string;
   pullSecret?: string;

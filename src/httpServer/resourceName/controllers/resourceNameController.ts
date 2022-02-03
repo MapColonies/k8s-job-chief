@@ -10,7 +10,7 @@ import { SERVICES } from '../../../common/constants';
 import { IResourceNameModel, ResourceNameManager } from '../models/resourceNameManager';
 
 type CreateResourceHandler = RequestHandler<undefined, IResourceNameModel, IResourceNameModel>;
-type GetResourceHandler = RequestHandler<undefined, any>;
+type GetResourceHandler = RequestHandler<undefined>;
 
 // const kc = new k8s.KubeConfig();
 

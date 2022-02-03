@@ -1,17 +1,24 @@
+import { Logger } from '@map-colonies/js-logger';
 import { TypedEmitter } from 'tiny-typed-emitter';
 import * as k8s from '@kubernetes/client-node';
 import httpStatus from 'http-status-codes';
 
+function isHttpError(error: unknown): error is k8s.HttpError {
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+  return (error as k8s.HttpError).response !== undefined && (error as k8s.HttpError).body !== undefined;
+}
+
 interface JobEvents {
+  started: () => void;
   completed: () => void;
   failed: (reason?: string) => void;
   error: (reason: string, message?: string) => void;
 }
 
-export class Job extends TypedEmitter<JobEvents> {
+export class K8sJob extends TypedEmitter<JobEvents> {
   private podInformer: k8s.Informer<k8s.V1Pod> | undefined;
   private name: string | undefined;
-  private initTimeout: NodeJS.Timeout | undefined;
+  private emittedStarted = false;
 
   public constructor(
     private readonly kubeConfig: k8s.KubeConfig,
@@ -20,8 +27,8 @@ export class Job extends TypedEmitter<JobEvents> {
     private readonly jobInformer: k8s.Informer<k8s.V1Job>,
     private readonly jobSpec: k8s.V1Job,
     private readonly namespace: string,
-    private readonly initTimeoutMs: number,
-    public readonly queueName: string
+    public readonly queueName: string,
+    public readonly logger: Logger
   ) {
     super();
     this.jobInformer.on('update', this.handleJobInformerUpdateEvent);
@@ -31,12 +38,16 @@ export class Job extends TypedEmitter<JobEvents> {
     if (this.name !== undefined) {
       throw new Error('job already started');
     }
-
-    const res = await this.k8sJobApi.createNamespacedJob(this.namespace, this.jobSpec);
-
-    if (res.response.statusCode !== httpStatus.CREATED) {
-      throw new Error('failed creating job');
+    let res: Awaited<ReturnType<typeof this.k8sJobApi.createNamespacedJob>>;
+    try {
+      res = await this.k8sJobApi.createNamespacedJob(this.namespace, this.jobSpec);
+    } catch (error) {
+      if (isHttpError(error)) {
+        this.logger.debug(error.body, `createNamespacedJob request for queue ${this.queueName} failed`);
+      }
+      throw error;
     }
+
     this.name = res.body.metadata?.name;
 
     this.podInformer = k8s.makeInformer(
@@ -45,10 +56,6 @@ export class Job extends TypedEmitter<JobEvents> {
       async () => this.k8sApi.listNamespacedPod(this.namespace, undefined, undefined, undefined, undefined, 'job-name=' + (this.name as string)),
       'job-name=' + (this.name as string)
     );
-
-    this.initTimeout = setTimeout(() => {
-      this.emit('error', 'timeout');
-    }, this.initTimeoutMs);
 
     this.podInformer.on('update', this.handlePodInformerUpdateEvent);
     await this.podInformer.start();
@@ -65,20 +72,11 @@ export class Job extends TypedEmitter<JobEvents> {
     if (res.response.statusCode !== httpStatus.OK) {
       throw new Error('failed deleting job');
     }
-    if (this.initTimeout !== undefined) {
-      clearTimeout(this.initTimeout);
-    }
-
-    // this.jobInformer.off('update', this.handleJobInformerUpdateEvent);
-    // await this.podInformer?.stop();
   }
 
   public async shutdown(): Promise<void> {
     this.jobInformer.off('update', this.handleJobInformerUpdateEvent);
     await this.podInformer?.stop();
-    if (this.initTimeout !== undefined) {
-      clearTimeout(this.initTimeout);
-    }
   }
 
   private readonly handlePodInformerUpdateEvent = (obj: k8s.V1Pod): void => {
@@ -89,9 +87,9 @@ export class Job extends TypedEmitter<JobEvents> {
       }
       return;
     }
-    if (this.initTimeout !== undefined && obj.status?.phase === 'Running') {
-      clearTimeout(this.initTimeout);
-      this.initTimeout = undefined;
+    if (!this.emittedStarted && obj.status?.phase === 'Running') {
+      this.emit('started');
+      this.emittedStarted = true;
     }
   };
 

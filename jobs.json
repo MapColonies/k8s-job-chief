@@ -1,8 +1,18 @@
-{
-  "queueName": "avi",
-  "parallelism": 1,
-  "image": "avi",
-  "command": ["perl", "-Mbignum=bpi", "-wle", "exo"],
-  "injectPgConfig": false,
-  "pullPolicy": "Always"
-}
+[
+  {
+    "queueName": "avi",
+    "podConfig": {
+      "parallelism": 1,
+      "image": "perll",
+      "command": ["perl", "-Mbignum=bpi", "-wle", "exit 1"],
+      "injectPgConfig": false,
+      "pullPolicy": "Never"
+    },
+    "waitTimeAfterSuccessfulRun": "5s",
+    "queueCheckInterval": "5s",
+    "jobStartTimeout": "1m",
+    "waitTimeAfterTimeout": "5s",
+    "waitTimeAfterError": "15s",
+    "waitTimeAfterFailedRun": "10s"
+  }
+]

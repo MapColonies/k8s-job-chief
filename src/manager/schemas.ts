@@ -83,37 +83,59 @@ export const jobConfigSchema: JSONSchemaType<JobConfig[]> = {
   uniqueItemProperties: ['queueName'],
   items: {
     type: 'object',
-    required: ['queueName', 'delayAfterFailedRunMs', 'delayAfterInitFailureMs', 'podConfig', 'delayAfterInitFailureMs'],
+    required: [
+      'queueName',
+      'waitTimeAfterSuccessfulRun',
+      'waitTimeAfterError',
+      'waitTimeAfterFailedRun',
+      'jobStartTimeout',
+      'waitTimeAfterTimeout',
+      'podConfig',
+      'queueCheckInterval',
+    ],
     properties: {
       queueName: {
         type: 'string',
         minLength: 1,
       },
       podConfig: podConfigSchema,
-      delayAfterInitFailureMs: {
-        type: 'integer',
-        minimum: 500,
+      jobStartTimeout: {
+        type: 'string',
+        pattern: '^\\d+[dhms]$',
       },
-      delayAfterFailedRunMs: {
-        type: 'integer',
-        minimum: 500,
+      waitTimeAfterSuccessfulRun: {
+        type: 'string',
+        pattern: '^\\d+[dhms]$',
       },
-      queueCheckIntervalMs: {
-        type: 'integer',
-        minimum: 500,
+      waitTimeAfterTimeout: {
+        type: 'string',
+        pattern: '^\\d+[dhms]$',
+      },
+      waitTimeAfterError: {
+        type: 'string',
+        pattern: '^\\d+[dhms]$',
+      },
+      waitTimeAfterFailedRun: {
+        type: 'string',
+        pattern: '^\\d+[dhms]$',
+      },
+      queueCheckInterval: {
+        type: 'string',
+        pattern: '^\\d+[dhms]$',
       },
     },
   },
 };
 
-export const validateJobConfig = (jobConfig: unknown): JobConfig => {
+export const validateJobConfig = (jobConfig: unknown): JobConfig[] => {
   const ajv = new Ajv();
   ajvKeywords.default(ajv);
   const validate = ajv.compile(jobConfigSchema);
   const valid = validate(jobConfig);
   if (!valid) {
-    const message = validate.errors != null ? betterAjvErrors(jobConfigSchema, jobConfig, validate.errors) : 'Invalid job config';
+    const message =
+      validate.errors != null ? betterAjvErrors(jobConfigSchema, jobConfig, validate.errors, { format: 'js' })[0].error : 'Invalid job config';
     throw new Error(message);
   }
-  return jobConfig as JobConfig;
+  return jobConfig;
 };

@@ -7,19 +7,20 @@ import { DependencyContainer } from 'tsyringe/dist/typings/types';
 import jsLogger, { LoggerOptions } from '@map-colonies/js-logger';
 import { Metrics } from '@map-colonies/telemetry';
 import PgBoss from 'pg-boss';
-import { instancePerContainerCachingFactory } from 'tsyringe';
+import { FactoryFunction, instancePerContainerCachingFactory } from 'tsyringe';
 import { SERVICES, SERVICE_NAME } from './common/constants';
 import { tracing } from './common/tracing';
 import { resourceNameRouterFactory, RESOURCE_NAME_ROUTER_SYMBOL } from './httpServer/resourceName/routes/resourceNameRouter';
 import { InjectionObject, registerDependencies } from './common/dependencyRegistration';
-import { DbConfig } from './queue/interfaces';
-import { pgBossFactory } from './queue';
+import { DbConfig, pgBossFactory } from './queue/pgboss';
 import { JOB_LABELS_SYMBOL } from './k8s/constants';
 import { flattenLabels } from './k8s/utils';
 import { jobFactoryForDi } from './k8s/jobFactory';
 import { K8sConfig } from './k8s/interfaces';
 import { validateJobConfig } from './manager/schemas';
 import { JOBS_CONFIG_SYMBOL } from './manager/constants';
+import { QUEUE_PROVIDER_SYMBOL } from './queue/queueProvider';
+import { PgBossQueueProvider } from './queue/pgbossQueueProvider';
 
 export interface RegisterOptions {
   override?: InjectionObject<unknown>[];
@@ -37,7 +38,6 @@ export const registerExternalValues = async (options?: RegisterOptions): Promise
 
   const jobsConfigRaw = await readFile(config.get('app.configPath'), 'utf8');
   const jobsConfig = validateJobConfig(JSON.parse(jobsConfigRaw));
-
 
   const pgBossOptions = config.get<DbConfig>('db');
   const pgBoss = await pgBossFactory(pgBossOptions);
@@ -74,15 +74,16 @@ export const registerExternalValues = async (options?: RegisterOptions): Promise
     { token: SERVICES.LOGGER, provider: { useValue: logger } },
     { token: SERVICES.TRACER, provider: { useValue: tracer } },
     { token: SERVICES.METER, provider: { useValue: meter } },
-    { token: JOBS_CONFIG_SYMBOL, provider: {useValue: jobs} }
+    { token: JOBS_CONFIG_SYMBOL, provider: { useValue: jobsConfig } },
     { token: JOB_LABELS_SYMBOL, provider: { useValue: jobLabels } },
     { token: PgBoss, provider: { useValue: pgBoss } },
     { token: SERVICES.K8S_CONFIG, provider: { useValue: kubeConfig } },
     { token: SERVICES.K8S_API, provider: { useValue: k8sApi } },
     { token: SERVICES.K8S_JOB_API, provider: { useValue: k8sJobApi } },
     { token: SERVICES.K8S_JOB_INFORMER, provider: { useValue: jobInformer } },
+    { token: QUEUE_PROVIDER_SYMBOL, provider: { useClass: PgBossQueueProvider } },
     { token: SERVICES.METRICS, provider: { useValue: metrics } },
-    { token: SERVICES.K8S_JOB_FACTORY, provider: { useFactory: instancePerContainerCachingFactory(jobFactoryForDi) } },
+    { token: SERVICES.K8S_JOB_FACTORY, provider: { useFactory: instancePerContainerCachingFactory(jobFactoryForDi) as FactoryFunction<unknown> } },
     { token: RESOURCE_NAME_ROUTER_SYMBOL, provider: { useFactory: resourceNameRouterFactory } },
     {
       token: 'onSignal',
