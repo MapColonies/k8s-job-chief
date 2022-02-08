@@ -9,7 +9,9 @@ import { JobConfig } from './interfaces';
 export class JobManager {
   private currentJob: K8sJob | undefined = undefined;
   private startTimeout: NodeJS.Timeout | undefined = undefined;
+  private scheduleTimeout: NodeJS.Timeout | undefined = undefined;
   private jobName = '';
+
   public constructor(
     private readonly jobConfig: JobConfig,
     private readonly jobFactory: JobFactory,
@@ -17,9 +19,13 @@ export class JobManager {
     private readonly logger: Logger
   ) {}
 
-  public startJob(): void {
+  public start(): void {
     this.logger.info(`queue ${this.jobConfig.queueName} starting`);
     void this.createJob();
+  }
+
+  public async stop(): Promise<void> {
+    await this.cleanUp();
   }
 
   private readonly createJob = async (): Promise<void> => {
@@ -30,7 +36,7 @@ export class JobManager {
       return;
     } else if (isEmpty === true) {
       this.logger.debug(`queue ${this.jobConfig.queueName} is empty`);
-      void this.scheduleNextRun(ms(this.jobConfig.waitTimeAfterSuccessfulRun));
+      void this.scheduleNextRun(ms(this.jobConfig.queueCheckInterval));
       return;
     }
     this.logger.debug(`queue: ${this.jobConfig.queueName} spawning new job`);
@@ -88,18 +94,24 @@ export class JobManager {
       }
     }
 
-    this.cleanUp();
+    await this.cleanUp();
     this.logger.debug(`queue ${this.jobConfig.queueName} will run again in ${timeoutMs}ms`);
-    setTimeout(() => {
+    this.scheduleTimeout = setTimeout(() => {
       void this.createJob();
     }, timeoutMs);
   }
 
-  private cleanUp(): void {
+  private async cleanUp(): Promise<void> {
     this.logger.debug(`queue ${this.jobConfig.queueName} cleaning up`);
     this.currentJob?.removeAllListeners();
+    await this.currentJob?.shutdown();
     if (this.startTimeout) {
+      this.logger.debug(`queue ${this.jobConfig.queueName} clearing start timeout`);
       clearTimeout(this.startTimeout);
+    }
+    if (this.scheduleTimeout) {
+      this.logger.debug(`queue ${this.jobConfig.queueName} clearing schedule timeout`);
+      clearTimeout(this.scheduleTimeout);
     }
     this.currentJob = undefined;
   }

@@ -9,6 +9,7 @@ import config from 'config';
 import { DEFAULT_SERVER_PORT, SERVICES } from './common/constants';
 
 import { getApp } from './app';
+import { ShutdownHandler } from './common/shutdownHandler';
 
 interface IServerConfig {
   port: string;
@@ -21,7 +22,11 @@ void getApp()
   .then((app) => {
     const logger = container.resolve<Logger>(SERVICES.LOGGER);
     const stubHealthcheck = async (): Promise<void> => Promise.resolve();
-    const server = createTerminus(createServer(app), { healthChecks: { '/liveness': stubHealthcheck, onSignal: container.resolve('onSignal') } });
+    const shutdownHandler = container.resolve(ShutdownHandler);
+    const server = createTerminus(createServer(app), {
+      healthChecks: { '/liveness': stubHealthcheck },
+      onSignal: shutdownHandler.shutdown.bind(shutdownHandler),
+    });
 
     server.listen(port, () => {
       logger.info(`app started on port ${port}`);
@@ -32,8 +37,8 @@ void getApp()
     console.log(error);
 
     console.error(error.message);
-    if (container.isRegistered('onSignal')) {
-      const shutDown: () => Promise<void> = container.resolve('onSignal');
-      await shutDown();
+    if (container.isRegistered(ShutdownHandler)) {
+      const shutdownHandler = container.resolve(ShutdownHandler);
+      await shutdownHandler.shutdown();
     }
   });

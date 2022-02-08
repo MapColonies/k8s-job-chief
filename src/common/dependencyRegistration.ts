@@ -1,4 +1,4 @@
-import { ClassProvider, container as defaultContainer, FactoryProvider, InjectionToken, ValueProvider } from 'tsyringe';
+import { ClassProvider, container as defaultContainer, FactoryProvider, InjectionToken, ValueProvider, RegistrationOptions } from 'tsyringe';
 import { constructor, DependencyContainer } from 'tsyringe/dist/typings/types';
 
 export type Providers<T> = ValueProvider<T> | FactoryProvider<T> | ClassProvider<T> | constructor<T>;
@@ -6,6 +6,8 @@ export type Providers<T> = ValueProvider<T> | FactoryProvider<T> | ClassProvider
 export interface InjectionObject<T> {
   token: InjectionToken<T>;
   provider: Providers<T>;
+  options?: RegistrationOptions;
+  postInjectionHook?: (container: DependencyContainer) => Promise<void>;
 }
 
 export const registerDependencies = (
@@ -16,7 +18,8 @@ export const registerDependencies = (
   const container = useChild ? defaultContainer.createChildContainer() : defaultContainer;
   dependencies.forEach((obj) => {
     const injectionObj = override?.find((overrideObj) => overrideObj.token === obj.token) ?? obj;
-    container.register(injectionObj.token, injectionObj.provider as constructor<unknown>);
+    container.register(injectionObj.token, injectionObj.provider as constructor<unknown>, injectionObj.options);
+    obj.postInjectionHook?.(container);
   });
   return container;
 };

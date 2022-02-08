@@ -47,6 +47,11 @@
     },
     "user": "DB_USERNAME",
     "password": "DB_PASSWORD",
+    "schema": "DB_SCHEMA",
+    "monitorStateIntervalSeconds": {
+      "__name": "DB_MONITOR_STATE_INTERVAL_SECONDS",
+      "__format": "number"
+    },
     "enableSslAuth": {
       "__name": "DB_ENABLE_SSL_AUTH",
       "__format": "boolean"
@@ -61,10 +66,14 @@
   },
   "app": {
     "instanceUid": "APP_INSTANCE_UID",
-    "configPath": "APP_CONFIG_PATH"
+    "jobsConfigPath": "APP_JOBS_CONFIG_PATH"
   },
   "kubernetes": {
     "namespace": "K8S_NAMESPACE",
-    "pullSecret": "K8S_PULL_SECRET"
+    "pullSecret": "K8S_PULL_SECRET",
+    "loadConfigFromCluster": {
+      "__name": "K8S_LOAD_CONFIG_FROM_CLUSTER",
+      "__format": "boolean"
+    }
   }
 }

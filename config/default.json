@@ -27,13 +27,15 @@
   },
   "app": {
     "instanceUid": "aaaaaa",
-    "configPath": "./jobs.json"
+    "jobsConfigPath": "./jobs.json"
   },
   "db": {
     "host": "localhost",
     "port": 5432,
     "user": "postgres",
     "password": "postgres",
+    "schema": "pgboss",
+    "monitorStateIntervalSeconds": 30,
     "enableSslAuth": false,
     "sslPaths": {
       "ca": "",
@@ -44,6 +46,7 @@
     "certSecretName": ""
   },
   "kubernetes": {
-    "namespace": "default"
+    "namespace": "default",
+    "loadConfigFromCluster": false
   }
 }

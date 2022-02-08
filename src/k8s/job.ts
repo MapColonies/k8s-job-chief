@@ -1,7 +1,6 @@
 import { Logger } from '@map-colonies/js-logger';
 import { TypedEmitter } from 'tiny-typed-emitter';
 import * as k8s from '@kubernetes/client-node';
-import httpStatus from 'http-status-codes';
 
 function isHttpError(error: unknown): error is k8s.HttpError {
   // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
@@ -19,6 +18,7 @@ export class K8sJob extends TypedEmitter<JobEvents> {
   private podInformer: k8s.Informer<k8s.V1Pod> | undefined;
   private name: string | undefined;
   private emittedStarted = false;
+  private deleted = false;
 
   public constructor(
     private readonly kubeConfig: k8s.KubeConfig,
@@ -67,10 +67,15 @@ export class K8sJob extends TypedEmitter<JobEvents> {
     if (this.name === undefined) {
       throw new Error('job not started');
     }
-    const res = await this.k8sJobApi.deleteNamespacedJob(this.name, this.namespace, undefined, undefined, undefined, undefined, 'Background');
-
-    if (res.response.statusCode !== httpStatus.OK) {
-      throw new Error('failed deleting job');
+    this.deleted = true;
+    try {
+      const res = await this.k8sJobApi.deleteNamespacedJob(this.name, this.namespace, undefined, undefined, undefined, undefined, 'Background');
+    } catch (error) {
+      this.deleted = false;
+      if (isHttpError(error)) {
+        this.logger.debug(error.body, `deleteNamespacedJob request for queue ${this.queueName} failed`);
+      }
+      throw error;
     }
   }
 
@@ -105,6 +110,16 @@ export class K8sJob extends TypedEmitter<JobEvents> {
     } else if (obj.status?.conditions?.[0]?.type === 'Failed' && obj.status.conditions[0]?.status === 'True') {
       this.emit('failed', obj.status.conditions[0]?.reason);
       this.jobInformer.off('update', this.handleJobInformerUpdateEvent);
+    }
+  };
+
+  private readonly handleJobInformerDeleteEvent = (obj: k8s.V1Job): void => {
+    if (this.deleted) {
+      return;
+    }
+    if (obj.metadata?.name === this.name) {
+      this.emit('failed', 'Job deleted');
+      this.jobInformer.off('delete', this.handleJobInformerDeleteEvent);
     }
   };
 }

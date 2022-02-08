@@ -1,15 +1,16 @@
 import { Logger } from '@map-colonies/js-logger';
 import PgBoss from 'pg-boss';
-import { inject, singleton } from 'tsyringe';
+import { inject, injectable } from 'tsyringe';
 import { SERVICES } from '../common/constants';
 import { JOBS_CONFIG_SYMBOL } from '../manager/constants';
 import { JobConfig } from '../manager/interfaces';
 import { QueueProvider, QueueStat } from './queueProvider';
 
-@singleton()
+@injectable()
 export class PgBossQueueProvider implements QueueProvider {
   private readonly queuesNames: Set<string>;
   private states: Record<string, QueueStat> = {};
+
   public constructor(
     private readonly pgBoss: PgBoss,
     @inject(SERVICES.LOGGER) private readonly logger: Logger,
@@ -20,14 +21,7 @@ export class PgBossQueueProvider implements QueueProvider {
 
   public async startQueue(): Promise<void> {
     this.logger.info('starting pg-boss queue');
-    this.pgBoss.on('monitor-states', (states) => {
-      this.states = Object.entries(states.queues).reduce((acc, [name, stats]) => {
-        if (this.queuesNames.has(name)) {
-          acc[name] = stats;
-        }
-        return acc;
-      }, {} as Record<string, QueueStat>);
-    });
+    this.pgBoss.on('monitor-states', this.handleMonitorStates);
     await this.pgBoss.start();
   }
 
@@ -40,8 +34,17 @@ export class PgBossQueueProvider implements QueueProvider {
     return Promise.resolve(this.states);
   }
 
-  public async isQueueEmpty (name: string): Promise<boolean> {
+  public async isQueueEmpty(name: string): Promise<boolean> {
     const count = await this.pgBoss.getQueueSize(name);
     return count === 0;
   }
+
+  private readonly handleMonitorStates = (states: PgBoss.MonitorStates): void => {
+    this.states = Object.entries(states.queues).reduce((acc, [name, stats]) => {
+      if (this.queuesNames.has(name)) {
+        acc[name] = stats;
+      }
+      return acc;
+    }, {} as Record<string, QueueStat>);
+  };
 }
