@@ -7,6 +7,7 @@ kind: ConfigMap
 metadata:
   name: {{ .Release.Name }}-{{ $chartName }}-configmap
 data:
+  APP_INSTANCE_UID: {{ .Values.env.instanceUid }}
   REQUEST_PAYLOAD_LIMIT: {{ .Values.env.requestPayloadLimit | quote }}
   RESPONSE_COMPRESSION_ENABLED: {{ .Values.env.responseCompressionEnabled | quote }}
   LOG_LEVEL: {{ .Values.env.logLevel | quote }}
@@ -19,5 +20,26 @@ data:
   TELEMETRY_METRICS_ENABLED: 'true'
   TELEMETRY_METRICS_URL: {{ $metricsUrl }}
   {{ end }}
-  LOG_LEVEL: {{ .Values.env.logLevel | quote }}
+  {{- with .Values.dbConfig }}
+  DB_HOST: {{ .host }}
+  DB_NAME: {{ .database }}
+  DB_SCHEMA: {{ .schema }}
+  DB_PORT: {{ .port | quote }}
+  DB_MONITOR_STATE_INTERVAL_SECONDS: {{ .monitorStateIntervalSeconds | quote }}
+  {{- end -}}
+  {{- if .Values.dbConfig.sslAuth.enabled }}
+  DB_ENABLE_SSL_AUTH: "true"
+  DB_CERT_SECRET_NAME: {{ .Values.dbConfig.sslAuth.secretName }}
+  DB_CERT_PATH: /tmp/certs/{{ .Values.dbConfig.sslAuth.certFileName }}
+  DB_KEY_PATH: /tmp/certs/{{ .Values.dbConfig.sslAuth.keyFileName }}
+  DB_CA_PATH: /tmp/certs/{{ .Values.dbConfig.sslAuth.caFileName }}
+  {{- else }}
+  DB_ENABLE_SSL_AUTH: "false"
+  {{- end }}
+  {{- if .Values.cloudProvider.imagePullSecretName }}
+  K8S_PULL_SECRET: {{ .Values.cloudProvider.imagePullSecretName | quote }}
+  {{- end }}
+  K8S_NAMESPACE: {{ .Release.Namespace }}
+  K8S_LOAD_CONFIG_FROM_CLUSTER: "true"
+  APP_JOBS_CONFIG_PATH: /etc/config/jobs.json
 {{- end }}

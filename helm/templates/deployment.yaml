@@ -34,11 +34,13 @@ spec:
       imagePullSecrets:
         - name: {{ .Values.cloudProvider.imagePullSecretName | quote }}
     {{- end }}
+      serviceAccountName: {{ $releaseName }}-{{ $chartName }}
       containers:
         - name: {{ $releaseName }}-{{ $chartName }}-deployment
           {{- with .Values.image }}
           image: {{ $cloudProviderDockerRegistryUrl }}{{ .repository }}:{{ $imageTag }}
           {{- end }}
+          imagePullPolicy: {{ .Values.imagePullPolicy }}
           env:
             - name: SERVER_PORT
               value: {{ .Values.env.targetPort | quote }}
@@ -49,6 +51,8 @@ spec:
           envFrom:
             - configMapRef:
                 name: {{ $releaseName }}-{{ $chartName }}-configmap
+            - secretRef:
+                name: {{ $releaseName }}-{{ $chartName }}-secret
           ports:
             - name: http
               containerPort: {{ .Values.env.targetPort }}
@@ -62,13 +66,18 @@ spec:
           resources:
             {{- toYaml .Values.resources.value | nindent 12 }}
           {{- end }}
-          {{- if .Values.caSecretName and .Values.caKey }}
           volumeMounts:
+            - name: jobs-configmap
+              mountPath: /etc/config
+          {{- if and .Values.caSecretName .Values.caKey }}
             - mountPath: '/usr/local/share/ca-certificates'
               name: root-ca
               subPath: {{ quote .Values.caKey }}
           {{- end }}
       volumes:
+        - name: jobs-configmap
+          configMap:
+            name: {{ .Release.Name }}-{{ $chartName }}-jobs-configmap
         {{- if .Values.caSecretName }}
         - name: root-ca
           secret:

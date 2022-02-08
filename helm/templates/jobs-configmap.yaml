@@ -1,0 +1,8 @@
+{{- $chartName := include "job-chief.name" . -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-{{ $chartName }}-jobs-configmap
+data:
+  jobs.json: |-
+{{ .Files.Get "config/jobs.json" | indent 4 }}
