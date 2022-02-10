@@ -40,11 +40,13 @@ export class PgBossQueueProvider implements QueueProvider {
   }
 
   private readonly handleMonitorStates = (states: PgBoss.MonitorStates): void => {
-    this.states = Object.entries(states.queues).reduce((acc, [name, stats]) => {
+    const newStates: Record<string, QueueStat> = {};
+    const entries = Object.entries(states.queues);
+    for (const [name, stats] of entries) {
       if (this.queuesNames.has(name)) {
-        acc[name] = stats;
+        newStates[name] = stats;
       }
-      return acc;
-    }, {} as Record<string, QueueStat>);
+    }
+    this.states = newStates;
   };
 }

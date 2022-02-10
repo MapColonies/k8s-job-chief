@@ -1,6 +1,6 @@
 import { dirname } from 'path';
 import * as k8s from '@kubernetes/client-node';
-import { DbConfig } from '../queue/pgboss';
+import { DbConfig } from '../queue/pgbossFactory';
 import { K8sConfig, PodConfig } from './interfaces';
 
 export function flattenLabels(labels: Record<string, string>): string {
@@ -123,7 +123,7 @@ export function createJobSpec(
     if (dbConfig.schema != null) {
       env.push({ name: 'DB_SCHEMA', value: dbConfig.schema });
     }
-    if (dbConfig.ssl === true) {
+    if (dbConfig.enableSslAuth) {
       env.push(
         { name: 'DB_ENABLE_SSL_AUTH', value: 'true' },
         { name: 'DB_CA_PATH', value: dbConfig.sslPaths.ca },

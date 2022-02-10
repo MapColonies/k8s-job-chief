@@ -3,7 +3,7 @@ import { DependencyContainer } from 'tsyringe';
 import * as k8s from '@kubernetes/client-node';
 import { IConfig } from 'config';
 import { SERVICES } from '../common/constants';
-import { DbConfig } from '../queue/pgboss';
+import { DbConfig } from '../queue/pgbossFactory';
 import { K8sJob } from './job';
 import { PodConfig, K8sConfig } from './interfaces';
 import { createJobSpec } from './utils';

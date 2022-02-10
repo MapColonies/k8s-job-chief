@@ -11,7 +11,7 @@ import { SERVICES, SERVICE_NAME } from './common/constants';
 import { tracing } from './common/tracing';
 import { statsRouterFactory, STATS_ROUTER_SYMBOL } from './httpServer/stats/routes/statsRouter';
 import { InjectionObject, registerDependencies } from './common/dependencyRegistration';
-import { DbConfig, pgBossFactory } from './queue/pgboss';
+import { DbConfig, pgBossFactory } from './queue/pgbossFactory';
 import { JOB_LABELS_SYMBOL } from './k8s/constants';
 import { createJobInformer, createK8sApis } from './k8s/utils';
 import { jobFactoryForDi } from './k8s/jobFactory';
