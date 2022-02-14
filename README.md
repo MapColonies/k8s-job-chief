@@ -5,7 +5,7 @@ Simple service for triggering Jobs based on an external queue.
 
 ## Motive
 There are other Open-Source tools that are very similar to this one, but their main disadvantage is that they require many permissions over the cluster.
-Usually they require stuff like CRD, ClusterRole, or they are Operators, which limits the environments where They can be deployed.
+Usually they require stuff like CRD, ClusterRole, or they are Operators, which limits the environments where they can be deployed.
 In comparison, job-chief only requires permissions over the Jobs and Pods in the same namespace.
 
 ## How it works
