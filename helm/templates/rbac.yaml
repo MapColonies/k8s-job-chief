@@ -1,6 +1,5 @@
 {{- $releaseName := .Release.Name -}}
 {{- $chartName := include "job-chief.name" . -}}
-
 apiVersion: v1
 kind: ServiceAccount
 metadata:

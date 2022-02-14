@@ -62,7 +62,6 @@ export function createJobSpec(
     },
     spec: {
       parallelism: podConfig.parallelism,
-
       backoffLimit: 0,
       template: {
         metadata: {

@@ -15,9 +15,9 @@ async function getApp(registerOptions?: RegisterOptions): Promise<Application> {
   const jobManagerFactory = container.resolve<JobManagerFactory>(SERVICES.JOB_MANAGER_FACTORY);
 
   jobsConfig.forEach((jobConfig) => {
-    const createJob = jobManagerFactory(jobConfig);
-    createJob.start();
-    shutdownHandler.addFunction(createJob.stop.bind(createJob));
+    const job = jobManagerFactory(jobConfig);
+    job.start();
+    shutdownHandler.addFunction(job.stop.bind(job));
   });
 
   return app;

@@ -4,13 +4,14 @@
 Simple service for triggering Jobs based on an external queue.
 
 ## Motive
-There are other Open-Source tools that very similiar to this one, but their main disadvangtge is permissions.
+There are other Open-Source tools that are very similar to this one, but their main disadvantage is that they require many permissions over the cluster.
 Usually they require stuff like CRD, ClusterRole, or they are Operators, which limits the environments where They can be deployed.
 In comparison, job-chief only requires permissions over the Jobs and Pods in the same namespace.
 
 ## How it works
+![job flow diagram](./images/job-chief-flow.svg)
 When starting the service, all the jobs are loaded into memory based on a configration file.
-Each job will check whether the queue for this specific job contain any items, and if it does, will spawn a Job in the kubernetes cluster.
+Each job will check whether the queue for this specific job contain any items, and if it does, will spawn a Job in the kubernetes cluster. If the queue is empty, nothing will happen, and the queue status will be checked again after a configurable wait time.
 While the job is active, the service tracks the status of the job and its pods. If the job fails to start it will be detected, and the job will start again after a certain time as defined in the job configuration.
 
 After the job is completed, the entire process will repeat itself after waiting for a certain period.
@@ -73,7 +74,7 @@ Each job structure is as follows:
         "port": 1337,
         "initialDelaySeconds": 30,
         "periodSeconds": 30,
-        "timeoutSeconds" 60,
+        "timeoutSeconds" 60
       },
       "pullPolicy": "Never", // 'Always' | 'IfNotPresent' | 'Never'
     },
