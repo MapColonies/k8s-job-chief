@@ -18,10 +18,15 @@ export class PgBossQueueProvider implements QueueProvider {
   ) {
     this.queuesNames = new Set(jobsConfig.map((jobConfig) => jobConfig.queueName));
   }
-
+  
   public async startQueue(): Promise<void> {
     this.logger.info('starting pg-boss queue');
+
+    this.pgBoss.on('error', (err) => {
+      this.logger.error(err, 'pg-boss error');
+    });
     this.pgBoss.on('monitor-states', this.handleMonitorStates);
+    
     await this.pgBoss.start();
   }
 

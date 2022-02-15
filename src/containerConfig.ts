@@ -106,15 +106,16 @@ export const registerExternalValues = async (options?: RegisterOptions): Promise
         options: { lifecycle: Lifecycle.Singleton },
         postInjectionHook: async (deps: DependencyContainer): Promise<void> => {
           const provider = deps.resolve<QueueProvider>(QUEUE_PROVIDER_SYMBOL);
-          await provider.startQueue();
           shutdownHandler.addFunction(provider.stopQueue.bind(provider));
+          await provider.startQueue();
         },
       },
       { token: STATS_ROUTER_SYMBOL, provider: { useFactory: statsRouterFactory } },
     ];
 
-    return registerDependencies(dependencies, options?.override, options?.useChild);
-  } catch (error) {
+    const container = await registerDependencies(dependencies, options?.override, options?.useChild);
+    return container;
+  } catch (error) {    
     await shutdownHandler.shutdown();
     throw error;
   }
