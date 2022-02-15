@@ -35,8 +35,7 @@ void getApp()
   .catch(async (error: Error) => {
     console.error('😢 - failed initializing the server');
     console.error(error);
-
-    console.error(error.message);
+    
     if (container.isRegistered(ShutdownHandler)) {
       const shutdownHandler = container.resolve(ShutdownHandler);
       await shutdownHandler.shutdown();
