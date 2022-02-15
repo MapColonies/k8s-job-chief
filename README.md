@@ -9,7 +9,21 @@ Usually they require stuff like CRD, ClusterRole, or they are Operators, which l
 In comparison, job-chief only requires permissions over the Jobs and Pods in the same namespace.
 
 ## How it works
-![job flow diagram](./images/job-chief-flow.svg)
+```mermaid
+flowchart LR
+    A[Start] --> B{IsQueueEmpty}
+    B -- no --> C([Start job])
+    C --> D{Did job start}
+    D -- yes --> E[job is pending]
+    E --> F{Is job running}
+    F -- yes --> G{Job completed <br> successfully}
+    G -- yes --> H[wait x seconds]
+    G -- no --> H
+    H --> B
+    F -- no --> H
+    D -- no --> H
+    
+```
 When starting the service, all the jobs are loaded into memory based on a configration file.
 Each job will check whether the queue for this specific job contain any items, and if it does, will spawn a Job in the kubernetes cluster. If the queue is empty, nothing will happen, and the queue status will be checked again after a configurable wait time.
 While the job is active, the service tracks the status of the job and its pods. If the job fails to start it will be detected, and the job will start again after a certain time as defined in the job configuration.
