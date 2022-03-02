@@ -65,7 +65,7 @@ async function getK8sDependencies(shutdownHandler: ShutdownHandler): Promise<Inj
     { token: SERVICES.K8S_API, provider: { useValue: k8sApi } },
     { token: SERVICES.K8S_JOB_API, provider: { useValue: k8sJobApi } },
     { token: SERVICES.K8S_JOB_INFORMER, provider: { useValue: jobInformer } },
-    { token: SERVICES.K8S_JOB_FACTORY, provider: { useFactory: instancePerContainerCachingFactory(jobFactoryForDi) as FactoryFunction<unknown> } },
+    { token: SERVICES.K8S_JOB_FACTORY, provider: { useFactory: instancePerContainerCachingFactory(jobFactoryForDi) } },
   ];
 }
 
