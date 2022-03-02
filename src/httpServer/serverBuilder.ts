@@ -9,7 +9,7 @@ import { Logger } from '@map-colonies/js-logger';
 import httpLogger from '@map-colonies/express-access-log-middleware';
 import { SERVICES } from '../common/constants';
 import { IConfig } from '../common/interfaces';
-import { STATS_ROUTER_SYMBOL } from './stats/routes/statsRouter';
+import { STATES_ROUTER_SYMBOL } from './states/routes/statesRouter';
 
 @injectable()
 export class ServerBuilder {
@@ -18,7 +18,7 @@ export class ServerBuilder {
   public constructor(
     @inject(SERVICES.CONFIG) private readonly config: IConfig,
     @inject(SERVICES.LOGGER) private readonly logger: Logger,
-    @inject(STATS_ROUTER_SYMBOL) private readonly statsRouter: Router
+    @inject(STATES_ROUTER_SYMBOL) private readonly statesRouter: Router
   ) {
     this.serverInstance = express();
   }
@@ -38,7 +38,7 @@ export class ServerBuilder {
   }
 
   private buildRoutes(): void {
-    this.serverInstance.use('/stats', this.statsRouter);
+    this.serverInstance.use('/states', this.statesRouter);
     this.buildDocsRoutes();
   }
 

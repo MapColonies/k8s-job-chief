@@ -149,7 +149,7 @@ describe('K8sJob', () => {
       expect(onError).toHaveBeenCalledWith('ErrImagePull', 'err');
     });
 
-    it('emit started event when the first pod is running', async () => {
+    it('should emit started event when the first pod is running', async () => {
       createNamespacedJobMock.mockResolvedValue({ body: { metadata: { name: 'job-name' } } });
       await k8sJob.startJob();
 

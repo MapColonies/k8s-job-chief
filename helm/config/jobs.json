@@ -5,7 +5,7 @@
       "parallelism": 5,
       "image": "pgboss-simple-worker:1.0.0",
       "injectPgConfig": true,
-      "pullPolicy": "Always",
+      "pullPolicy": "Never",
       "liveness": {
         "enabled": false
       }

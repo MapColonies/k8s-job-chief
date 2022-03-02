@@ -1,5 +1,5 @@
 import jsLogger from '@map-colonies/js-logger';
-import PgBoss, { Job } from 'pg-boss';
+import PgBoss from 'pg-boss';
 import { JobConfig } from '../../../src/manager/interfaces';
 import { PgBossQueueProvider } from '../../../src/queue/pgbossQueueProvider';
 
@@ -44,8 +44,8 @@ describe('PgBossQueueProvider', () => {
     await expect(provider.isQueueEmpty('test')).resolves.toBe(false);
   });
 
-  it('return stats about the queues', async () => {
-    const stats: PgBoss.MonitorStates = {
+  it('return states about the queues', async () => {
+    const states: PgBoss.MonitorStates = {
       active: 2,
       all: 2,
       cancelled: 2,
@@ -80,10 +80,10 @@ describe('PgBossQueueProvider', () => {
     await provider.startQueue();
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    const monitStatesHandler = pgbossMock.on.mock.calls[0][1] as unknown as (states: PgBoss.MonitorStates) => void;
+    const monitorStatesHandler = pgbossMock.on.mock.calls[1][1] as unknown as (states: PgBoss.MonitorStates) => void;
 
-    await expect(provider.getQueuesStats()).resolves.toEqual({});
-    monitStatesHandler(stats);
-    await expect(provider.getQueuesStats()).resolves.toEqual({ test: stats.queues.test });
+    await expect(provider.getQueuesStates()).resolves.toEqual({});
+    monitorStatesHandler(states);
+    await expect(provider.getQueuesStates()).resolves.toEqual({ test: states.queues.test });
   });
 });

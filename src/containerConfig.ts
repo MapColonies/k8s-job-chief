@@ -9,7 +9,7 @@ import PgBoss from 'pg-boss';
 import { FactoryFunction, instancePerContainerCachingFactory, Lifecycle } from 'tsyringe';
 import { SERVICES, SERVICE_NAME } from './common/constants';
 import { tracing } from './common/tracing';
-import { statsRouterFactory, STATS_ROUTER_SYMBOL } from './httpServer/stats/routes/statsRouter';
+import { statsRouterFactory, STATES_ROUTER_SYMBOL } from './httpServer/states/routes/statesRouter';
 import { InjectionObject, registerDependencies } from './common/dependencyRegistration';
 import { DbConfig, pgBossFactory } from './queue/pgbossFactory';
 import { JOB_LABELS_SYMBOL } from './k8s/constants';
@@ -17,11 +17,12 @@ import { createJobInformer, createK8sApis } from './k8s/utils';
 import { jobFactoryForDi } from './k8s/jobFactory';
 import { validateJobConfig } from './manager/schemas';
 import { JOBS_CONFIG_SYMBOL } from './manager/constants';
-import { QueueProvider, QUEUE_PROVIDER_SYMBOL } from './queue/queueProvider';
+import { QueueProvider } from './queue/queueProvider';
 import { PgBossQueueProvider } from './queue/pgbossQueueProvider';
 import { JobConfig } from './manager/interfaces';
 import { ShutdownHandler } from './common/shutdownHandler';
 import { jobManagerFactoryForDi } from './manager/jobManagerFactory';
+import { QUEUE_PROVIDER_SYMBOL } from './queue/constants';
 
 function getObservabilityDependencies(shutdownHandler: ShutdownHandler): InjectionObject<unknown>[] {
   const loggerConfig = config.get<LoggerOptions>('telemetry.logger');
@@ -98,7 +99,7 @@ export const registerExternalValues = async (options?: RegisterOptions): Promise
       { token: PgBoss, provider: { useValue: pgBoss } },
       {
         token: SERVICES.JOB_MANAGER_FACTORY,
-        provider: { useFactory: instancePerContainerCachingFactory(jobManagerFactoryForDi) as FactoryFunction<unknown> },
+        provider: { useFactory: instancePerContainerCachingFactory(jobManagerFactoryForDi) },
       },
       {
         token: QUEUE_PROVIDER_SYMBOL,
@@ -110,13 +111,13 @@ export const registerExternalValues = async (options?: RegisterOptions): Promise
           await provider.startQueue();
         },
       },
-      { token: STATS_ROUTER_SYMBOL, provider: { useFactory: statsRouterFactory } },
+      { token: STATES_ROUTER_SYMBOL, provider: { useFactory: statsRouterFactory } },
     ];
 
     const container = await registerDependencies(dependencies, options?.override, options?.useChild);
     return container;
-  } catch (error) {    
-    await shutdownHandler.shutdown();
+  } catch (error) {
+    await shutdownHandler.onShutdown();
     throw error;
   }
 };

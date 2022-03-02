@@ -8,11 +8,11 @@ info:
     url: https://opensource.org/licenses/MIT
 
 paths:
-  /stats:
+  /states:
     get:
-      operationId: getStats
+      operationId: getStates
       tags:
-        - stats
+        - states
       summary: get the statistics about all existing queues
       responses:
         200:

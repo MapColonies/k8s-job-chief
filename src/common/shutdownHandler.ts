@@ -17,7 +17,7 @@ export class ShutdownHandler {
     }
   }
 
-  public async shutdown(): Promise<void> {
+  public async onShutdown(): Promise<void> {
     if (this.shutdownTriggered) {
       return;
     }

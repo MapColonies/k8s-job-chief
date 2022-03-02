@@ -2,7 +2,8 @@ import { Logger } from '@map-colonies/js-logger';
 import { DependencyContainer } from 'tsyringe';
 import { SERVICES } from '../common/constants';
 import { JobFactory } from '../k8s/jobFactory';
-import { QueueProvider, QUEUE_PROVIDER_SYMBOL } from '../queue/queueProvider';
+import { QUEUE_PROVIDER_SYMBOL } from '../queue/constants';
+import { QueueProvider } from '../queue/queueProvider';
 import { JobConfig } from './interfaces';
 import { JobManager } from './jobManager';
 

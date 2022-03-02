@@ -25,7 +25,7 @@ void getApp()
     const shutdownHandler = container.resolve(ShutdownHandler);
     const server = createTerminus(createServer(app), {
       healthChecks: { '/liveness': stubHealthcheck },
-      onSignal: shutdownHandler.shutdown.bind(shutdownHandler),
+      onSignal: shutdownHandler.onShutdown.bind(shutdownHandler),
     });
 
     server.listen(port, () => {
@@ -38,6 +38,6 @@ void getApp()
 
     if (container.isRegistered(ShutdownHandler)) {
       const shutdownHandler = container.resolve(ShutdownHandler);
-      await shutdownHandler.shutdown();
+      await shutdownHandler.onShutdown();
     }
   });

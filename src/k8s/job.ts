@@ -57,9 +57,9 @@ export class K8sJob extends TypedEmitter<JobEvents> {
       async () => this.k8sApi.listNamespacedPod(this.namespace, undefined, undefined, undefined, undefined, 'job-name=' + (this.name as string)),
       'job-name=' + (this.name as string)
     );
-    
+
     this.podInformer.on('update', this.handlePodInformerUpdateEvent);
-    await this.podInformer.start();    
+    await this.podInformer.start();
 
     return res.body.metadata?.name as string;
   }
@@ -87,7 +87,7 @@ export class K8sJob extends TypedEmitter<JobEvents> {
 
   private readonly handlePodInformerUpdateEvent = (obj: k8s.V1Pod): void => {
     if (obj.status?.phase === 'Pending') {
-      const containerState = obj.status.containerStatuses?.[0].state?.waiting;      
+      const containerState = obj.status.containerStatuses?.[0].state?.waiting;
       if (containerState?.reason === 'CrashLoopBackOff' || (containerState?.reason?.startsWith('Err') ?? false)) {
         this.emit('error', containerState?.reason ?? 'unknown', containerState?.message ?? 'unknown');
       }
@@ -101,7 +101,7 @@ export class K8sJob extends TypedEmitter<JobEvents> {
 
   private readonly handleJobInformerUpdateEvent = (obj: k8s.V1Job): void => {
     const name = obj.metadata?.name;
-    
+
     if (this.name === undefined || this.name !== name) {
       return;
     }

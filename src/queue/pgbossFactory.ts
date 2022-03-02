@@ -19,5 +19,5 @@ export type DbConfig = {
 
 export const pgBossFactory = async (dbConfig: DbConfig): Promise<PgBoss> => {
   const databaseOptions = await createDatabaseOptions(dbConfig);
-  return new PgBoss({ ...databaseOptions });
+  return new PgBoss(databaseOptions);
 };

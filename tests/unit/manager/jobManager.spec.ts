@@ -57,9 +57,8 @@ describe.skip('jobManager', () => {
     jobManager.start();
 
     await waitForExpect(() => {
-      
       expect(jobMock.startJob).toHaveBeenCalledTimes(1);
-    })
+    });
   });
   it('should schedule a new job if failed to check queue status', () => {
     const setTimeoutSpy = jest.spyOn(global, 'setTimeout');

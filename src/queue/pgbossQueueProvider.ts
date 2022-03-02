@@ -4,11 +4,12 @@ import { inject, injectable } from 'tsyringe';
 import { SERVICES } from '../common/constants';
 import { JOBS_CONFIG_SYMBOL } from '../manager/constants';
 import { JobConfig } from '../manager/interfaces';
-import { QueueProvider, QueueStat } from './queueProvider';
+import { QueueStat } from './interfaces';
+import { QueueProvider } from './queueProvider';
 
 @injectable()
 export class PgBossQueueProvider implements QueueProvider {
-  private readonly queuesNames: Set<string>;
+  private readonly jobQueuesNames: Set<string>;
   private states: Record<string, QueueStat> = {};
 
   public constructor(
@@ -16,9 +17,9 @@ export class PgBossQueueProvider implements QueueProvider {
     @inject(SERVICES.LOGGER) private readonly logger: Logger,
     @inject(JOBS_CONFIG_SYMBOL) jobsConfig: JobConfig[]
   ) {
-    this.queuesNames = new Set(jobsConfig.map((jobConfig) => jobConfig.queueName));
+    this.jobQueuesNames = new Set(jobsConfig.map((jobConfig) => jobConfig.queueName));
   }
-  
+
   public async startQueue(): Promise<void> {
     this.logger.info('starting pg-boss queue');
 
@@ -26,7 +27,7 @@ export class PgBossQueueProvider implements QueueProvider {
       this.logger.error(err, 'pg-boss error');
     });
     this.pgBoss.on('monitor-states', this.handleMonitorStates);
-    
+
     await this.pgBoss.start();
   }
 
@@ -35,7 +36,7 @@ export class PgBossQueueProvider implements QueueProvider {
     await this.pgBoss.stop();
   }
 
-  public async getQueuesStats(): Promise<Record<string, QueueStat>> {
+  public async getQueuesStates(): Promise<Record<string, QueueStat>> {
     return Promise.resolve(this.states);
   }
 
@@ -47,11 +48,13 @@ export class PgBossQueueProvider implements QueueProvider {
   private readonly handleMonitorStates = (states: PgBoss.MonitorStates): void => {
     const newStates: Record<string, QueueStat> = {};
     const entries = Object.entries(states.queues);
-    for (const [name, stats] of entries) {
-      if (this.queuesNames.has(name)) {
-        newStates[name] = stats;
+
+    for (const [name, states] of entries) {
+      if (this.jobQueuesNames.has(name)) {
+        newStates[name] = states;
       }
     }
+
     this.states = newStates;
   };
 }

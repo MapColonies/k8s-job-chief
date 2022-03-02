@@ -59,7 +59,7 @@ Currently the only queue support is [pg-boss](https://github.com/timgit/pg-boss)
   },
   "kubernetes": {
     "namespace": "default", // the namespace in which the Jobs will be spawned (should be the same as service normally)
-    "loadConfigFromCluster": false, // wheter to use default credentials for k8s api, or load from the cluster
+    "loadConfigFromCluster": false, // whether to use default credentials for k8s api, or load from the cluster
     "pullSecret": "" // the pull secret to use when creating new jobs
   }
 }
@@ -76,19 +76,19 @@ Each job structure is as follows:
       "parallelism": 1, // number of pods the job will spawn
       "image": "imageName",
       "command": ["do", "action"], // optional
-      "args" ["-l"], //optional
+      "args": ["-l"], //optional
       "injectPgConfig": false, // whether the job will be injected with the PG env varibles
       "env": [{ "name": "NAME", "value": "value" }], // optional
       "configmaps": [], // optional array of configmaps that will be added as ENV to the job
       "secrets": [], // optional array of secrets that will be added as ENV to the job
-      "resources": { "limits":{"cpu": "500m", "memory":"128mi"}, "requests":{"cpu": "500m", "memory":"128mi"}} // optional
+      "resources": { "limits":{"cpu": "500m", "memory":"128mi"}, "requests":{"cpu": "500m", "memory":"128mi"}}, // optional
       "liveness": {
-        "enabled": false
-        "path": "/liveness"
+        "enabled": false,
+        "path": "/liveness",
         "port": 1337,
         "initialDelaySeconds": 30,
         "periodSeconds": 30,
-        "timeoutSeconds" 60
+        "timeoutSeconds": 60
       },
       "pullPolicy": "Never", // 'Always' | 'IfNotPresent' | 'Never'
     },
