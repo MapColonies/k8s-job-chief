@@ -60,8 +60,9 @@ export class JobManager {
 
   private readonly handleJobCompletion = (): void => {
     this.logger.info(`job ${this.jobName} completed`);
-    const job = this.currentJob as K8sJob;
-    void job.deleteJob().then(async () => this.scheduleNextRun(ms(this.jobConfig.waitTimeAfterSuccessfulRun)));
+    // const job = this.currentJob as K8sJob;
+    // void job.deleteJob().then(async () => this.scheduleNextRun(ms(this.jobConfig.waitTimeAfterSuccessfulRun)));
+    void this.scheduleNextRun(ms(this.jobConfig.waitTimeAfterSuccessfulRun))
   };
 
   private readonly handleJobError = (reason: string, message?: string): void => {

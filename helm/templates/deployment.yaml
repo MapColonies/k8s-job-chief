@@ -78,7 +78,7 @@ spec:
         - name: jobs-configmap
           configMap:
             name: {{ .Release.Name }}-{{ $chartName }}-jobs-configmap
-        {{- if .Values.caSecretName .Values.caKey }}
+        {{- if and .Values.caSecretName .Values.caKey }}
         - name: root-ca
           secret:
             secretName: {{ .Values.caSecretName }}
