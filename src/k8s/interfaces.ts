@@ -11,6 +11,7 @@ export interface PodConfig {
   image: string;
   command?: string[];
   args?: string[];
+  annotations?: Record<string,string>;
   injectPgConfig: boolean;
   env?: { name: string; value: string }[];
   configmaps?: string[];
@@ -31,6 +32,14 @@ export const podConfigSchema: JSONSchemaType<PodConfig> = {
       type: 'integer',
       minimum: 1,
       maximum: 30,
+    },
+    annotations: {
+      nullable: true,
+      type: 'object',
+      required: [],
+      additionalProperties: {
+        type: 'string',
+      },
     },
     image: {
       type: 'string',

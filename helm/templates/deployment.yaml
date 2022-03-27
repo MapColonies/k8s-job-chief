@@ -74,6 +74,11 @@ spec:
               name: root-ca
               subPath: {{ quote .Values.caKey }}
           {{- end }}
+          {{- if .Values.dbConfig.sslAuth.enabled }}
+            - name: cert-conf
+              mountPath: /tmp/certs
+              readOnly: true
+          {{- end }}
       volumes:
         - name: jobs-configmap
           configMap:
@@ -82,5 +87,10 @@ spec:
         - name: root-ca
           secret:
             secretName: {{ .Values.caSecretName }}
+        {{- end }}
+        {{- if .Values.dbConfig.sslAuth.enabled }}
+        - name: cert-conf
+          secret:
+            secretName: {{ .Values.dbConfig.sslAuth.secretName }}
         {{- end }}
 {{- end -}}

@@ -28,7 +28,7 @@ export class JobManager {
     await this.cleanUp();
   }
 
-  private readonly createJob = async (): Promise<void> => {
+  private readonly createJob = async (): Promise<void> => {    
     const [error, isEmpty] = await presult(this.queueProvider.isQueueEmpty(this.jobConfig.queueName));
     if (error) {
       this.logger.error(error, `queue ${this.jobConfig.queueName} failed to check if it is empty`);
@@ -48,7 +48,7 @@ export class JobManager {
     this.currentJob.once('error', this.handleJobError);
     this.currentJob.once('failed', this.handleJobFailed);
     this.currentJob.once('started', this.handleJobStarted);
-
+    
     const [err, jobName] = await presult(this.currentJob.startJob());
     if (err) {
       this.logger.error(err, `job ${this.jobConfig.queueName} failed to start`);

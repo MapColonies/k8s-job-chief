@@ -58,6 +58,7 @@ export function createJobSpec(
     metadata: {
       generateName: `job-chief-${instanceUid}-${queueName}-`,
       labels: { 'queue-name': queueName, ...labels },
+      annotations: podConfig.annotations,
       namespace: k8sConfig.namespace,
     },
     spec: {
