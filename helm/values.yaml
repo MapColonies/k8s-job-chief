@@ -46,7 +46,8 @@ dbConfig:
   database: job-chief
   schema: pgboss
   port: 5432
-  monitorStateIntervalSeconds: 30
+  monitorStateIntervalSeconds: 30,
+  deleteAfterHours: 720,
   sslAuth:
     enabled: false
     secretName: secret-name

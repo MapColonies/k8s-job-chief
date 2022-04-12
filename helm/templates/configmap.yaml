@@ -26,6 +26,7 @@ data:
   DB_SCHEMA: {{ .schema }}
   DB_PORT: {{ .port | quote }}
   DB_MONITOR_STATE_INTERVAL_SECONDS: {{ .monitorStateIntervalSeconds | quote }}
+  DB_DELETE_JOBS_AFTER_HOURS: {{ .deleteAfterHours | quote }}
   {{- end -}}
   {{- if .Values.dbConfig.sslAuth.enabled }}
   DB_ENABLE_SSL_AUTH: "true"

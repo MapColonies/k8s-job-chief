@@ -62,7 +62,11 @@
       "cert": "DB_CERT_PATH"
     },
     "database": "DB_NAME",
-    "certSecertName": "DB_CERT_SECRET_NAME"
+    "certSecertName": "DB_CERT_SECRET_NAME",
+    "deleteAfterHours": {
+      "__name": "DB_DELETE_JOBS_AFTER_HOURS",
+      "__format": "number"
+    }
   },
   "app": {
     "instanceUid": "APP_INSTANCE_UID",

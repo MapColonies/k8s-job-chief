@@ -43,7 +43,8 @@
       "cert": ""
     },
     "database": "postgres",
-    "certSecretName": ""
+    "certSecretName": "",
+    "deleteAfterHours": 720
   },
   "kubernetes": {
     "namespace": "default",
