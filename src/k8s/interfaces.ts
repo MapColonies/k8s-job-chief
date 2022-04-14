@@ -11,7 +11,7 @@ export interface PodConfig {
   image: string;
   command?: string[];
   args?: string[];
-  annotations?: Record<string,string>;
+  annotations?: Record<string, string>;
   injectPgConfig: boolean;
   env?: { name: string; value: string }[];
   configmaps?: string[];
