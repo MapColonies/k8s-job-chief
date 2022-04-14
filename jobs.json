@@ -1,0 +1,21 @@
+[
+  {
+    "queueName": "avi",
+    "podConfig": {
+      "parallelism": 1,
+      "image": "perl",
+      "command": ["perl", "-Mbignum=bpi", "-wle", "exit 1"],
+      "injectPgConfig": false,
+      "pullPolicy": "Never",
+      "liveness": {
+        "enabled": false
+      }
+    },
+    "waitTimeAfterSuccessfulRun": "5s",
+    "queueCheckInterval": "55s",
+    "jobStartTimeout": "1m",
+    "waitTimeAfterTimeout": "5s",
+    "waitTimeAfterError": "15s",
+    "waitTimeAfterFailedRun": "10s"
+  }
+]

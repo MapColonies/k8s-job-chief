@@ -38,5 +38,46 @@
         }
       }
     }
+  },
+  "db": {
+    "host": "DB_HOST",
+    "port": {
+      "__name": "DB_PORT",
+      "__format": "number"
+    },
+    "user": "DB_USERNAME",
+    "password": "DB_PASSWORD",
+    "schema": "DB_SCHEMA",
+    "monitorStateIntervalSeconds": {
+      "__name": "DB_MONITOR_STATE_INTERVAL_SECONDS",
+      "__format": "number"
+    },
+    "enableSslAuth": {
+      "__name": "DB_ENABLE_SSL_AUTH",
+      "__format": "boolean"
+    },
+    "sslPaths": {
+      "ca": "DB_CA_PATH",
+      "key": "DB_KEY_PATH",
+      "cert": "DB_CERT_PATH"
+    },
+    "database": "DB_NAME",
+    "certSecertName": "DB_CERT_SECRET_NAME",
+    "deleteAfterHours": {
+      "__name": "DB_DELETE_JOBS_AFTER_HOURS",
+      "__format": "number"
+    }
+  },
+  "app": {
+    "instanceUid": "APP_INSTANCE_UID",
+    "jobsConfigPath": "APP_JOBS_CONFIG_PATH"
+  },
+  "kubernetes": {
+    "namespace": "K8S_NAMESPACE",
+    "pullSecret": "K8S_PULL_SECRET",
+    "loadConfigFromCluster": {
+      "__name": "K8S_LOAD_CONFIG_FROM_CLUSTER",
+      "__format": "boolean"
+    }
   }
 }

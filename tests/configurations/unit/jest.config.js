@@ -18,6 +18,9 @@ module.exports = {
     '!**/controllers/**',
     '!**/routes/**',
     '!<rootDir>/src/*',
+    '!<rootDir>/src/httpServer/*.ts',
+    '!**/(interfaces|constants).ts',
+    '!**/*Factory.ts',
   ],
   coverageDirectory: '<rootDir>/coverage',
   reporters: [

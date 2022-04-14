@@ -1,0 +1,49 @@
+{{- $releaseName := .Release.Name -}}
+{{- $chartName := include "job-chief.name" . -}}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ $releaseName }}-{{ $chartName }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ $chartName }}
+    component: {{ $chartName }}
+    environment: {{ include "job-chief.environment" . }}
+    release: {{ $releaseName }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ $releaseName }}-{{ $chartName }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ $chartName }}
+    component: {{ $chartName }}
+    environment: {{ include "job-chief.environment" . }}
+    release: {{ $releaseName }}
+rules:
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["batch"]
+    resources: ["jobs"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ $releaseName }}-{{ $chartName }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ $chartName }}
+    component: {{ $chartName }}
+    environment: {{ include "job-chief.environment" . }}
+    release: {{ $releaseName }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ $releaseName }}-{{ $chartName }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ $releaseName }}-{{ $chartName }}
+    namespace: {{ .Release.Namespace }}

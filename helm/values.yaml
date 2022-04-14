@@ -9,10 +9,11 @@ environment: development
 replicaCount: 1
 initialDelaySeconds: 60
 nodePort: 30030 #for minikube deployment only
+imagePullPolicy: Always
 
 cloudProvider:
   dockerRegistryUrl: my-registry-url.io
-  imagePullSecretName: 'my-registry-secret'
+  # imagePullSecretName: 'my-registry-secret'
   flavor: openshift
 
 caSecretName: ''
@@ -20,9 +21,10 @@ caKey: 'ca.crt'
 
 image:
   repository: k8s-job-chief
-  tag: 'latest'
+  # tag: 'latest'
 
 env:
+  instanceUid: 'aaaaaa'
   port: 8080
   targetPort: 8080
   protocol: TCP
@@ -36,6 +38,22 @@ env:
   metrics:
     enabled: false
     url: http://localhost:55681/v1/metrics
+
+dbConfig:
+  host: localhost
+  username: postgres
+  password: postgres
+  database: job-chief
+  schema: pgboss
+  port: 5432
+  monitorStateIntervalSeconds: 30
+  deleteAfterHours: 720
+  sslAuth:
+    enabled: false
+    secretName: secret-name
+    certFileName: postgresql.crt
+    keyFileName: postgresql.key
+    caFileName: root.crt
 
 resources:
   enabled: true

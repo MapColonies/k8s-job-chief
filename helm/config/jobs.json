@@ -1,0 +1,20 @@
+[
+  {
+    "queueName": "avi",
+    "podConfig": {
+      "parallelism": 5,
+      "image": "pgboss-simple-worker:1.0.0",
+      "injectPgConfig": true,
+      "pullPolicy": "Never",
+      "liveness": {
+        "enabled": false
+      }
+    },
+    "waitTimeAfterSuccessfulRun": "30s",
+    "queueCheckInterval": "1m",
+    "jobStartTimeout": "1m",
+    "waitTimeAfterTimeout": "1m",
+    "waitTimeAfterError": "1m",
+    "waitTimeAfterFailedRun": "1m"
+  }
+]
