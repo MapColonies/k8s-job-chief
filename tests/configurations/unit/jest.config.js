@@ -21,6 +21,7 @@ module.exports = {
     '!<rootDir>/src/httpServer/*.ts',
     '!**/(interfaces|constants).ts',
     '!**/*Factory.ts',
+    '!**/jobsManager.ts',
   ],
   coverageDirectory: '<rootDir>/coverage',
   reporters: [
@@ -36,7 +37,7 @@ module.exports = {
       branches: 80,
       functions: 80,
       lines: 80,
-      statements: -10,
+      statements: -20,
     },
   },
 };

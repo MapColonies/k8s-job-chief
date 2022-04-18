@@ -48,6 +48,7 @@
     "user": "DB_USERNAME",
     "password": "DB_PASSWORD",
     "schema": "DB_SCHEMA",
+    "managerSchema": "DB_MANAGER_SCHEMA",
     "monitorStateIntervalSeconds": {
       "__name": "DB_MONITOR_STATE_INTERVAL_SECONDS",
       "__format": "number"

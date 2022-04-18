@@ -17,6 +17,8 @@ export const SERVICES: Record<string, symbol> = {
   K8S_JOB_API: Symbol('K8sJobApi'),
   K8S_JOB_INFORMER: Symbol('K8sJobInformer'),
   K8S_JOB_FACTORY: Symbol('K8sJobFactory'),
-  JOB_MANAGER_FACTORY: Symbol('JobManagerFactory'),
+  JOB_LIFECYCLE_WRAPPER_FACTORY: Symbol('JobLifecyleWrapperFactory'),
+  MANAGER_PGBOSS: Symbol('ManagerPgBoss'),
+  JOB_SCHEDULER: Symbol('JobScheduler'),
 };
 /* eslint-enable @typescript-eslint/naming-convention */
