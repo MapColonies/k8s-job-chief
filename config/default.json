@@ -48,6 +48,8 @@
   },
   "kubernetes": {
     "namespace": "default",
-    "loadConfigFromCluster": false
+    "loadConfigFromCluster": false,
+    "jobCleanupInterval": "15m",
+    "jobMaxAgeForDeletion": "30m"
   }
 }
