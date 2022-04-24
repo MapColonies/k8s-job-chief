@@ -32,30 +32,32 @@ export class JobsManager {
       await this.scheduler.scheduleJob(key, 0);
     }
 
-    await this.scheduler.handleJobs(async ({ name }) => {
-      try {
-        const jobObject = this.jobMap.get(name);
-
-        if (!jobObject) {
-          throw new Error(`Job ${name} not found`);
-        }
-
-        jobObject.lifecycleWrapper = this.jobLifecycleWrapperFactory(jobObject.config);
-
-        jobObject.lifecycleWrapper.once('completed', () => {
-          jobObject.lifecycleWrapper = undefined;
-        });
-
-        await jobObject.lifecycleWrapper.start();
-      } catch (error) {
-        this.logger.error({ err: error });
-        throw error;
-      }
-    }, this.abortController.signal);
+    await this.scheduler.handleJobs(this.jobHandler.bind(this), this.abortController.signal);
   }
 
   public async stop(): Promise<void> {
     this.abortController.abort();
     await Promise.all(Array.from(this.jobMap.values()).map(({ lifecycleWrapper }) => lifecycleWrapper?.stop()));
+  }
+
+  private async jobHandler({ name }: { name: string }): Promise<void> {
+    try {
+      const jobObject = this.jobMap.get(name);
+
+      if (!jobObject) {
+        throw new Error(`Job ${name} not found`);
+      }
+
+      jobObject.lifecycleWrapper = this.jobLifecycleWrapperFactory(jobObject.config);
+
+      jobObject.lifecycleWrapper.once('completed', () => {
+        jobObject.lifecycleWrapper = undefined;
+      });
+
+      await jobObject.lifecycleWrapper.start();
+    } catch (error) {
+      this.logger.error({ err: error });
+      throw error;
+    }
   }
 }

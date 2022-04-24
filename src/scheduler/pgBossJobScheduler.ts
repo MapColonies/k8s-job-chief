@@ -5,7 +5,7 @@ import { SERVICES } from '../common/constants';
 import { JobScheduler } from './jobScheduler';
 
 const QUEUE_NAME = 'k8s-job-starts';
-const WAIT_TIME = 1000;
+const WAIT_TIME_MS = 1000;
 
 @injectable()
 export class PgBossJobScheduler implements JobScheduler {
@@ -16,7 +16,7 @@ export class PgBossJobScheduler implements JobScheduler {
   }
 
   public async handleJobs(handler: (data: { name: string }) => Promise<void>, signal: AbortSignal): Promise<void> {
-    for await (const queueName of setIntervalPromise(WAIT_TIME, QUEUE_NAME, { signal })) {
+    for await (const queueName of setIntervalPromise(WAIT_TIME_MS, QUEUE_NAME, { signal })) {
       const job = await this.pgBoss.fetch<{ name: string }>(queueName);
       if (job != null) {
         await this.pgBoss.complete(job.id);

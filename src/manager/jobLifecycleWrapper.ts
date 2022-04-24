@@ -8,7 +8,7 @@ import { QueueProvider } from '../queue/queueProvider';
 import { JobScheduler } from '../scheduler/jobScheduler';
 import { JobConfig } from './interfaces';
 
-const MILLISECONDS_IN_SECOND = 1000;
+const SECOND_MS = 1000;
 
 interface JobEvents {
   completed: () => Promise<void> | void;
@@ -41,7 +41,7 @@ export class JobLifecycleWrapper extends TypedEmitter<JobEvents> {
     }
 
     if (isEmpty) {
-      this.logger.debug(`queue ${this.jobConfig.queueName} is empty`);
+      this.logger.info(`queue ${this.jobConfig.queueName} is empty`);
       return this.scheduleNextRun(ms(this.jobConfig.queueCheckInterval));
     }
 
@@ -107,7 +107,7 @@ export class JobLifecycleWrapper extends TypedEmitter<JobEvents> {
 
     await this.cleanUp();
     this.logger.debug(`queue ${this.jobConfig.queueName} will run again in ${timeoutMs}ms`);
-    await this.scheduler.scheduleJob(this.jobConfig.queueName, timeoutMs / MILLISECONDS_IN_SECOND);
+    await this.scheduler.scheduleJob(this.jobConfig.queueName, timeoutMs / SECOND_MS);
   }
 
   private async cleanUp(): Promise<void> {
