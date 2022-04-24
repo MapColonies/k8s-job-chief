@@ -30,14 +30,7 @@ export class K8sJobCleaner {
       const result = await this.k8sJobApi.listNamespacedJob(this.namespace, undefined, undefined, undefined, undefined, this.labels);
 
       const jobsToDeleteNames = result.body.items
-        .filter((item) =>
-          item.status?.conditions?.some(
-            (condition) =>
-              ['Failed', 'Complete'].includes(condition.type) &&
-              condition.status === 'True' &&
-              differenceInMilliseconds(Date.now(), condition.lastTransitionTime as Date) > this.cleanupMaxAge
-          )
-        )
+        .filter(this.jobsFilterForDeletion.bind(this))
         .map((item) => item.metadata?.name as string);
 
       this.logger.info(`job cleanup - deleting ${jobsToDeleteNames.length} jobs`);
@@ -45,5 +38,14 @@ export class K8sJobCleaner {
     } catch (error) {
       this.logger.error({ err: error, msg: 'Failed to delete jobs' });
     }
+  }
+
+  private jobsFilterForDeletion(job: k8s.V1Job): boolean {
+    return job.status?.conditions?.some(
+      (condition) =>
+        ['Failed', 'Complete'].includes(condition.type) &&
+        condition.status === 'True' &&
+        differenceInMilliseconds(Date.now(), condition.lastTransitionTime as Date) > this.cleanupMaxAge
+    ) ?? false
   }
 }
