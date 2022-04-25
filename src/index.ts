@@ -10,6 +10,7 @@ import { DEFAULT_SERVER_PORT, SERVICES } from './common/constants';
 
 import { getApp } from './app';
 import { ShutdownHandler } from './common/shutdownHandler';
+
 interface IServerConfig {
   port: string;
 }
