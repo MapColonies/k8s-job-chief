@@ -10,7 +10,6 @@ import { DEFAULT_SERVER_PORT, SERVICES } from './common/constants';
 
 import { getApp } from './app';
 import { ShutdownHandler } from './common/shutdownHandler';
-// -180 + (tile.x + 0.5) * (360 / (2 * 2 ** zoom))
 interface IServerConfig {
   port: string;
 }
