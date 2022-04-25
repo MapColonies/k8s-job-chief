@@ -8,10 +8,10 @@ function isHttpError(error: unknown): error is k8s.HttpError {
 }
 
 interface JobEvents {
-  started: () => void;
-  completed: () => void;
-  failed: (reason?: string) => void;
-  error: (reason: string, message?: string) => void;
+  started: () => Promise<void> | void;
+  completed: () => Promise<void> | void;
+  failed: (reason?: string) => Promise<void> | void;
+  error: (reason: string, message?: string) => Promise<void> | void;
 }
 
 export class K8sJob extends TypedEmitter<JobEvents> {

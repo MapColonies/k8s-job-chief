@@ -84,6 +84,7 @@
     "@types/multer": "^1.4.7",
     "@types/supertest": "^2.0.11",
     "@types/swagger-ui-express": "^4.1.3",
+    "@types/node": "^16.11.7",
     "commitlint": "^13.2.1",
     "copyfiles": "^2.4.1",
     "cz-conventional-changelog": "^3.3.0",
@@ -100,7 +101,6 @@
     "standard-version": "^9.3.2",
     "supertest": "^6.1.6",
     "ts-jest": "^27.0.7",
-    "typescript": "^4.5.5",
-    "wait-for-expect": "^3.0.2"
+    "typescript": "^4.6.3"
   }
 }

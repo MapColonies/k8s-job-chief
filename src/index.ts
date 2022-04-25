@@ -33,8 +33,10 @@ void getApp()
     });
   })
   .catch(async (error: Error) => {
-    console.error('😢 - failed initializing the server');
-    console.error(error);
+    const errorLogger = container.isRegistered(SERVICES.LOGGER)
+      ? container.resolve<Logger>(SERVICES.LOGGER).error.bind(container.resolve<Logger>(SERVICES.LOGGER))
+      : console.error;
+    errorLogger({ msg: '😢 - failed initializing the server', err: error });
 
     if (container.isRegistered(ShutdownHandler)) {
       const shutdownHandler = container.resolve(ShutdownHandler);

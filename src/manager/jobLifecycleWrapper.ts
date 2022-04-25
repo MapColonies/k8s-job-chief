@@ -1,44 +1,50 @@
 import ms from 'ms';
 import { Logger } from '@map-colonies/js-logger';
+import { TypedEmitter } from 'tiny-typed-emitter';
 import { presult } from '../common/util';
 import { K8sJob } from '../k8s/job';
 import { JobFactory } from '../k8s/jobFactory';
 import { QueueProvider } from '../queue/queueProvider';
+import { JobScheduler } from '../scheduler/jobScheduler';
 import { JobConfig } from './interfaces';
 
-export class JobManager {
+const SECOND_MS = 1000;
+
+interface JobEvents {
+  completed: () => Promise<void> | void;
+}
+
+export class JobLifecycleWrapper extends TypedEmitter<JobEvents> {
   private currentJob: K8sJob | undefined = undefined;
   private startTimeout: NodeJS.Timeout | undefined = undefined;
-  private scheduleTimeout: NodeJS.Timeout | undefined = undefined;
+  // private scheduleTimeout: NodeJS.Timeout | undefined = undefined;
   private jobName = '';
 
   public constructor(
     private readonly jobConfig: JobConfig,
     private readonly jobFactory: JobFactory,
     private readonly queueProvider: QueueProvider,
+    private readonly scheduler: JobScheduler,
     private readonly logger: Logger
-  ) {}
-
-  public start(): void {
-    this.logger.info(`queue ${this.jobConfig.queueName} starting`);
-    void this.createJob();
+  ) {
+    super();
   }
 
-  public async stop(): Promise<void> {
-    await this.cleanUp();
-  }
-
-  private readonly createJob = async (): Promise<void> => {
+  public async start(): Promise<void> {
+    this.logger.info(`checking if should start job on queue ${this.jobConfig.queueName}`);
     const [error, isEmpty] = await presult(this.queueProvider.isQueueEmpty(this.jobConfig.queueName));
+
+    // checking if an error occurred while checking queue status
     if (error) {
       this.logger.error(error, `queue ${this.jobConfig.queueName} failed to check if it is empty`);
-      void this.scheduleNextRun(ms(this.jobConfig.waitTimeAfterError));
-      return;
-    } else if (isEmpty === true) {
-      this.logger.debug(`queue ${this.jobConfig.queueName} is empty`);
-      void this.scheduleNextRun(ms(this.jobConfig.queueCheckInterval));
-      return;
+      throw error;
     }
+
+    if (isEmpty) {
+      this.logger.info(`queue ${this.jobConfig.queueName} is empty`);
+      return this.scheduleNextRun(ms(this.jobConfig.queueCheckInterval));
+    }
+
     this.logger.debug(`queue: ${this.jobConfig.queueName} spawning new job`);
     this.currentJob = this.jobFactory(this.jobConfig.queueName, this.jobConfig.podConfig);
 
@@ -52,27 +58,31 @@ export class JobManager {
     const [err, jobName] = await presult(this.currentJob.startJob());
     if (err) {
       this.logger.error(err, `job ${this.jobConfig.queueName} failed to start`);
-      void this.scheduleNextRun(ms(this.jobConfig.jobStartTimeout));
-      return;
+      return this.scheduleNextRun(ms(this.jobConfig.waitTimeAfterError));
     }
-    this.jobName = jobName as string;
-  };
 
-  private readonly handleJobCompletion = (): void => {
+    this.jobName = jobName;
+  }
+
+  public async stop(): Promise<void> {
+    await this.cleanUp();
+  }
+
+  private readonly handleJobCompletion = async (): Promise<void> => {
     this.logger.info(`job ${this.jobName} completed`);
     // const job = this.currentJob as K8sJob;
     // void job.deleteJob().then(async () => this.scheduleNextRun(ms(this.jobConfig.waitTimeAfterSuccessfulRun)));
-    void this.scheduleNextRun(ms(this.jobConfig.waitTimeAfterSuccessfulRun));
+    await this.scheduleNextRun(ms(this.jobConfig.waitTimeAfterSuccessfulRun));
   };
 
-  private readonly handleJobError = (reason: string, message?: string): void => {
+  private readonly handleJobError = async (reason: string, message?: string): Promise<void> => {
     this.logger.error(`job ${this.jobName} failed with reason ${reason} and message ${message ?? ''}`);
-    void this.scheduleNextRun(ms(this.jobConfig.waitTimeAfterError));
+    await this.scheduleNextRun(ms(this.jobConfig.waitTimeAfterError));
   };
 
-  private readonly handleJobFailed = (reason?: string): void => {
+  private readonly handleJobFailed = async (reason?: string): Promise<void> => {
     this.logger.error(`job ${this.jobName} failed with reason ${reason ?? 'unknown'}`);
-    void this.scheduleNextRun(ms(this.jobConfig.waitTimeAfterFailedRun));
+    await this.scheduleNextRun(ms(this.jobConfig.waitTimeAfterFailedRun));
   };
 
   private readonly handleJobStarted = (): void => {
@@ -97,9 +107,7 @@ export class JobManager {
 
     await this.cleanUp();
     this.logger.debug(`queue ${this.jobConfig.queueName} will run again in ${timeoutMs}ms`);
-    this.scheduleTimeout = setTimeout(() => {
-      void this.createJob();
-    }, timeoutMs);
+    await this.scheduler.scheduleJob(this.jobConfig.queueName, timeoutMs / SECOND_MS);
   }
 
   private async cleanUp(): Promise<void> {
@@ -110,10 +118,7 @@ export class JobManager {
       this.logger.debug(`queue ${this.jobConfig.queueName} clearing start timeout`);
       clearTimeout(this.startTimeout);
     }
-    if (this.scheduleTimeout) {
-      this.logger.debug(`queue ${this.jobConfig.queueName} clearing schedule timeout`);
-      clearTimeout(this.scheduleTimeout);
-    }
     this.currentJob = undefined;
+    this.emit('completed');
   }
 }
