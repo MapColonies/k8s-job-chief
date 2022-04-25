@@ -35,6 +35,7 @@
     "user": "postgres",
     "password": "postgres",
     "schema": "pgboss",
+    "managerSchema": "chief",
     "monitorStateIntervalSeconds": 30,
     "enableSslAuth": false,
     "sslPaths": {

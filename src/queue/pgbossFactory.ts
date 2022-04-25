@@ -15,6 +15,7 @@ export type DbConfig = {
   enableSslAuth: boolean;
   sslPaths: { ca: string; cert: string; key: string };
   certSecretName: string;
+  managerSchema: string;
 } & DatabaseOptions;
 
 export const pgBossFactory = async (dbConfig: DbConfig): Promise<PgBoss> => {

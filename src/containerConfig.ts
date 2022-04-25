@@ -6,7 +6,7 @@ import { DependencyContainer } from 'tsyringe/dist/typings/types';
 import jsLogger, { LoggerOptions } from '@map-colonies/js-logger';
 import { Metrics } from '@map-colonies/telemetry';
 import PgBoss from 'pg-boss';
-import { FactoryFunction, instancePerContainerCachingFactory, Lifecycle } from 'tsyringe';
+import { instancePerContainerCachingFactory, Lifecycle } from 'tsyringe';
 import { SERVICES, SERVICE_NAME } from './common/constants';
 import { tracing } from './common/tracing';
 import { statsRouterFactory, STATES_ROUTER_SYMBOL } from './httpServer/states/routes/statesRouter';
@@ -21,8 +21,9 @@ import { QueueProvider } from './queue/queueProvider';
 import { PgBossQueueProvider } from './queue/pgbossQueueProvider';
 import { JobConfig } from './manager/interfaces';
 import { ShutdownHandler } from './common/shutdownHandler';
-import { jobManagerFactoryForDi } from './manager/jobManagerFactory';
+import { jobLifecycleWrapperFactoryForDi } from './manager/jobLifecycleWrapperFactory';
 import { QUEUE_PROVIDER_SYMBOL } from './queue/constants';
+import { PgBossJobScheduler } from './scheduler/pgBossJobScheduler';
 
 function getObservabilityDependencies(shutdownHandler: ShutdownHandler): InjectionObject<unknown>[] {
   const loggerConfig = config.get<LoggerOptions>('telemetry.logger');
@@ -84,8 +85,9 @@ export const registerExternalValues = async (options?: RegisterOptions): Promise
   const shutdownHandler = new ShutdownHandler();
   try {
     const jobsConfig = await getJobsConfig();
-
-    const pgBoss = await pgBossFactory(config.get<DbConfig>('db'));
+    const dbConfig = config.get<DbConfig>('db');
+    const pgBoss = await pgBossFactory(dbConfig);
+    const managerPgBoss = await pgBossFactory({ ...dbConfig, schema: dbConfig.managerSchema });
 
     const k8sDeps = await getK8sDependencies(shutdownHandler);
     const obsDeps = getObservabilityDependencies(shutdownHandler);
@@ -98,8 +100,18 @@ export const registerExternalValues = async (options?: RegisterOptions): Promise
       { token: JOBS_CONFIG_SYMBOL, provider: { useValue: jobsConfig } },
       { token: PgBoss, provider: { useValue: pgBoss } },
       {
-        token: SERVICES.JOB_MANAGER_FACTORY,
-        provider: { useFactory: instancePerContainerCachingFactory(jobManagerFactoryForDi) },
+        token: SERVICES.MANAGER_PGBOSS,
+        provider: { useValue: managerPgBoss },
+        postInjectionHook: async (container): Promise<void> => {
+          const boss = container.resolve<PgBoss>(SERVICES.MANAGER_PGBOSS);
+          await boss.start();
+          shutdownHandler.addFunction(boss.stop.bind(boss));
+        },
+      },
+      { token: SERVICES.JOB_SCHEDULER, provider: { useClass: PgBossJobScheduler } },
+      {
+        token: SERVICES.JOB_LIFECYCLE_WRAPPER_FACTORY,
+        provider: { useFactory: instancePerContainerCachingFactory(jobLifecycleWrapperFactoryForDi) },
       },
       {
         token: QUEUE_PROVIDER_SYMBOL,

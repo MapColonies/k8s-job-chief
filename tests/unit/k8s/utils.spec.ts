@@ -59,6 +59,7 @@ describe('#createJobSpec', () => {
       database: 'database',
       certSecretName: 'cert-secret-name',
       schema: 'schema',
+      managerSchema: 'chief',
       enableSslAuth: true,
       sslPaths: {
         ca: 'ca-path',
