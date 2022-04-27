@@ -22,10 +22,12 @@ void registerExternalValues()
     const shutdownHandler = container.resolve(ShutdownHandler);
     shutdownHandler.addFunction(manager.stop.bind(manager));
     await manager.start();
-  }).catch(async (error: Error) => {
-    const errorLogger = depContainer?.isRegistered(SERVICES.LOGGER) == true
-      ? depContainer.resolve<Logger>(SERVICES.LOGGER).error.bind(depContainer.resolve<Logger>(SERVICES.LOGGER))
-      : console.error;
+  })
+  .catch(async (error: Error) => {
+    const errorLogger =
+      depContainer?.isRegistered(SERVICES.LOGGER) == true
+        ? depContainer.resolve<Logger>(SERVICES.LOGGER).error.bind(depContainer.resolve<Logger>(SERVICES.LOGGER))
+        : console.error;
     errorLogger({ msg: '😢 - failed initializing the server', err: error });
 
     if (depContainer?.isRegistered(ShutdownHandler) == true) {

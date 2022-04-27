@@ -17,4 +17,4 @@ export const jobCleanerFactory: FactoryFunction<() => Promise<void>> = (containe
   };
 
   return clean;
-}
+};
