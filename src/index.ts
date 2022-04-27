@@ -1,45 +1,35 @@
 /* eslint-disable import/first */
 // this import must be called before the first import of tsyring
 import 'reflect-metadata';
-import { createServer } from 'http';
-import { createTerminus } from '@godaddy/terminus';
 import { Logger } from '@map-colonies/js-logger';
-import { container } from 'tsyringe';
-import config from 'config';
-import { DEFAULT_SERVER_PORT, SERVICES } from './common/constants';
-
-import { getApp } from './app';
+import { DependencyContainer } from 'tsyringe';
+import { JOB_CLEANER_FACTORY, LIVENESS_PROBE_FACTORY, SERVICES } from './common/constants';
 import { ShutdownHandler } from './common/shutdownHandler';
+import { registerExternalValues } from './containerConfig';
+import { JobsManager } from './manager/jobsManager';
 
-interface IServerConfig {
-  port: string;
-}
+let depContainer: DependencyContainer | undefined;
 
-const serverConfig = config.get<IServerConfig>('server');
-const port: number = parseInt(serverConfig.port) || DEFAULT_SERVER_PORT;
+void registerExternalValues()
+  .then(async (container) => {
+    depContainer = container;
 
-void getApp()
-  .then((app) => {
-    const logger = container.resolve<Logger>(SERVICES.LOGGER);
-    const stubHealthcheck = async (): Promise<void> => Promise.resolve();
+    container.resolve<void>(LIVENESS_PROBE_FACTORY);
+
+    container.resolve<void>(JOB_CLEANER_FACTORY);
+
+    const manager = container.resolve(JobsManager);
     const shutdownHandler = container.resolve(ShutdownHandler);
-    const server = createTerminus(createServer(app), {
-      healthChecks: { '/liveness': stubHealthcheck },
-      onSignal: shutdownHandler.onShutdown.bind(shutdownHandler),
-    });
-
-    server.listen(port, () => {
-      logger.info(`app started on port ${port}`);
-    });
-  })
-  .catch(async (error: Error) => {
-    const errorLogger = container.isRegistered(SERVICES.LOGGER)
-      ? container.resolve<Logger>(SERVICES.LOGGER).error.bind(container.resolve<Logger>(SERVICES.LOGGER))
+    shutdownHandler.addFunction(manager.stop.bind(manager));
+    await manager.start();
+  }).catch(async (error: Error) => {
+    const errorLogger = depContainer?.isRegistered(SERVICES.LOGGER) == true
+      ? depContainer.resolve<Logger>(SERVICES.LOGGER).error.bind(depContainer.resolve<Logger>(SERVICES.LOGGER))
       : console.error;
     errorLogger({ msg: '😢 - failed initializing the server', err: error });
 
-    if (container.isRegistered(ShutdownHandler)) {
-      const shutdownHandler = container.resolve(ShutdownHandler);
+    if (depContainer?.isRegistered(ShutdownHandler) == true) {
+      const shutdownHandler = depContainer.resolve(ShutdownHandler);
       await shutdownHandler.onShutdown();
     }
   });

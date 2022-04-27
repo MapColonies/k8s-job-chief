@@ -6,6 +6,9 @@ export const DEFAULT_SERVER_PORT = 8080;
 export const IGNORED_OUTGOING_TRACE_ROUTES = [/^.*\/v1\/metrics.*$/];
 export const IGNORED_INCOMING_TRACE_ROUTES = [/^.*\/docs.*$/];
 
+export const LIVENESS_PROBE_FACTORY = Symbol('LivenessProbeFactory');
+export const JOB_CLEANER_FACTORY = Symbol('jobCleanerFactory');
+
 /* eslint-disable @typescript-eslint/naming-convention */
 export const SERVICES: Record<string, symbol> = {
   LOGGER: Symbol('Logger'),
@@ -21,4 +24,3 @@ export const SERVICES: Record<string, symbol> = {
   MANAGER_PGBOSS: Symbol('ManagerPgBoss'),
   JOB_SCHEDULER: Symbol('JobScheduler'),
 };
-/* eslint-enable @typescript-eslint/naming-convention */

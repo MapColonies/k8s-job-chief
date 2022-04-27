@@ -7,7 +7,7 @@ import jsLogger, { LoggerOptions } from '@map-colonies/js-logger';
 import { Metrics } from '@map-colonies/telemetry';
 import PgBoss from 'pg-boss';
 import { instancePerContainerCachingFactory, Lifecycle } from 'tsyringe';
-import { SERVICES, SERVICE_NAME } from './common/constants';
+import { JOB_CLEANER_FACTORY, LIVENESS_PROBE_FACTORY, SERVICES, SERVICE_NAME } from './common/constants';
 import { tracing } from './common/tracing';
 import { statsRouterFactory, STATES_ROUTER_SYMBOL } from './httpServer/states/routes/statesRouter';
 import { InjectionObject, registerDependencies } from './common/dependencyRegistration';
@@ -24,12 +24,14 @@ import { ShutdownHandler } from './common/shutdownHandler';
 import { jobLifecycleWrapperFactoryForDi } from './manager/jobLifecycleWrapperFactory';
 import { QUEUE_PROVIDER_SYMBOL } from './queue/constants';
 import { PgBossJobScheduler } from './scheduler/pgBossJobScheduler';
+import { livenessProbeFactory } from './common/liveness';
+import { jobCleanerFactory } from './k8s/jobCleanerFactory';
 
 function getObservabilityDependencies(shutdownHandler: ShutdownHandler): InjectionObject<unknown>[] {
   const loggerConfig = config.get<LoggerOptions>('telemetry.logger');
 
   // @ts-expect-error the signature is wrong
-  const logger = jsLogger({ ...loggerConfig, prettyPrint: loggerConfig.prettyPrint, hooks: { logMethod } });
+  const logger = jsLogger({ ...loggerConfig, hooks: { logMethod } });
 
   const metrics = new Metrics(SERVICE_NAME);
   const meter = metrics.start();
@@ -124,6 +126,8 @@ export const registerExternalValues = async (options?: RegisterOptions): Promise
         },
       },
       { token: STATES_ROUTER_SYMBOL, provider: { useFactory: statsRouterFactory } },
+      { token: LIVENESS_PROBE_FACTORY, provider: { useFactory: livenessProbeFactory } },
+      { token: JOB_CLEANER_FACTORY, provider: { useFactory: jobCleanerFactory } },
     ];
 
     const container = await registerDependencies(dependencies, options?.override, options?.useChild);
