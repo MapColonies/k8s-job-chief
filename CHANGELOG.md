@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.1.0](https://github.com/MapColonies/k8s-job-chief/compare/v1.0.0...v1.1.0) (2022-04-27)
+
+
+### Features
+
+* added a function that cleans completed jobs on interval ([571252f](https://github.com/MapColonies/k8s-job-chief/commit/571252fdc0d7e4217f05f095791f1825a902eea4))
+* added a function that cleans completed jobs on interval ([#3](https://github.com/MapColonies/k8s-job-chief/issues/3)) ([8eb81bf](https://github.com/MapColonies/k8s-job-chief/commit/8eb81bfa5ac6cd0741888ee1decca17e5bbfde29))
+
 ## 1.0.0 (2022-04-14)
 
 
