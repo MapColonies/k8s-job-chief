@@ -10,7 +10,7 @@ import { ShutdownHandler } from './common/shutdownHandler';
 import { ServerBuilder } from './httpServer/serverBuilder';
 import { registerExternalValues } from './containerConfig';
 import { JobsManager } from './manager/jobsManager';
-import { IConfig, IServerConfig } from './common/interfaces';
+import { IConfig } from './common/interfaces';
 
 let depContainer: DependencyContainer | undefined;
 
@@ -22,8 +22,7 @@ void registerExternalValues()
     container.resolve<void>(JOB_CLEANER_FACTORY);
 
     const config = depContainer.resolve<IConfig>(SERVICES.CONFIG);
-    const serverConfig = config.get<IServerConfig>('server');
-    const port: number = parseInt(serverConfig.port) || DEFAULT_SERVER_PORT;
+    const port: number = config.get<number>('server.port') || DEFAULT_SERVER_PORT;
     const app = depContainer.resolve(ServerBuilder).build();
     const shutdownHandler = container.resolve(ShutdownHandler);
     const server = createTerminus(createServer(app), {
