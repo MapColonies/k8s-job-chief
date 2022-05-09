@@ -2,44 +2,59 @@
 // this import must be called before the first import of tsyring
 import 'reflect-metadata';
 import { createServer } from 'http';
-import { createTerminus } from '@godaddy/terminus';
 import { Logger } from '@map-colonies/js-logger';
-import { container } from 'tsyringe';
-import config from 'config';
-import { DEFAULT_SERVER_PORT, SERVICES } from './common/constants';
-
-import { getApp } from './app';
+import { createTerminus } from '@godaddy/terminus';
+import { DependencyContainer } from 'tsyringe';
+import { JOB_CLEANER_FACTORY, LIVENESS_PROBE_FACTORY, DEFAULT_SERVER_PORT, SERVICES } from './common/constants';
 import { ShutdownHandler } from './common/shutdownHandler';
+import { ServerBuilder } from './httpServer/serverBuilder';
+import { registerExternalValues } from './containerConfig';
+import { JobsManager } from './manager/jobsManager';
+import { IConfig } from './common/interfaces';
 
-interface IServerConfig {
-  port: string;
-}
+let depContainer: DependencyContainer | undefined;
 
-const serverConfig = config.get<IServerConfig>('server');
-const port: number = parseInt(serverConfig.port) || DEFAULT_SERVER_PORT;
+void registerExternalValues()
+  .then(async (container) => {
+    depContainer = container;
 
-void getApp()
-  .then((app) => {
-    const logger = container.resolve<Logger>(SERVICES.LOGGER);
-    const stubHealthcheck = async (): Promise<void> => Promise.resolve();
+    const livenessCheck = container.resolve<() => Promise<void>>(LIVENESS_PROBE_FACTORY);
+    container.resolve<void>(JOB_CLEANER_FACTORY);
+
+    const config = depContainer.resolve<IConfig>(SERVICES.CONFIG);
+    const port: number = config.get<number>('server.port') || DEFAULT_SERVER_PORT;
+    const app = depContainer.resolve(ServerBuilder).build();
     const shutdownHandler = container.resolve(ShutdownHandler);
     const server = createTerminus(createServer(app), {
-      healthChecks: { '/liveness': stubHealthcheck },
+      healthChecks: { '/liveness': livenessCheck },
       onSignal: shutdownHandler.onShutdown.bind(shutdownHandler),
     });
 
+    shutdownHandler.addFunction(async () => {
+      return new Promise((resolve) => {
+        server.once('close', resolve);
+        server.close();
+      });
+    });
+
+    const manager = container.resolve(JobsManager);
+    shutdownHandler.addFunction(manager.stop.bind(manager));
+    await manager.start();
+
     server.listen(port, () => {
+      const logger = container.resolve<Logger>(SERVICES.LOGGER);
       logger.info(`app started on port ${port}`);
     });
   })
   .catch(async (error: Error) => {
-    const errorLogger = container.isRegistered(SERVICES.LOGGER)
-      ? container.resolve<Logger>(SERVICES.LOGGER).error.bind(container.resolve<Logger>(SERVICES.LOGGER))
-      : console.error;
+    const errorLogger =
+      depContainer?.isRegistered(SERVICES.LOGGER) == true
+        ? depContainer.resolve<Logger>(SERVICES.LOGGER).error.bind(depContainer.resolve<Logger>(SERVICES.LOGGER))
+        : console.error;
     errorLogger({ msg: '😢 - failed initializing the server', err: error });
 
-    if (container.isRegistered(ShutdownHandler)) {
-      const shutdownHandler = container.resolve(ShutdownHandler);
+    if (depContainer?.isRegistered(ShutdownHandler) == true) {
+      const shutdownHandler = depContainer.resolve(ShutdownHandler);
       await shutdownHandler.onShutdown();
     }
   });
