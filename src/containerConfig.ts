@@ -51,6 +51,7 @@ function getObservabilityDependencies(shutdownHandler: ShutdownHandler): Injecti
 async function getK8sDependencies(shutdownHandler: ShutdownHandler): Promise<InjectionObject<unknown>[]> {
   const jobLabels: Record<string, string> = {
     app: 'job-chief',
+    // eslint-disable-next-line @typescript-eslint/naming-convention
     'owner-id': config.get('app.instanceUid'),
     environment: process.env.NODE_ENV ?? 'development',
   };

@@ -57,6 +57,7 @@ export function createJobSpec(
     kind: 'Job',
     metadata: {
       generateName: `job-chief-${instanceUid}-${queueName}-`,
+      // eslint-disable-next-line @typescript-eslint/naming-convention
       labels: { 'queue-name': queueName, ...labels },
       annotations: podConfig.annotations,
       namespace: k8sConfig.namespace,
@@ -67,6 +68,7 @@ export function createJobSpec(
       template: {
         metadata: {
           name: `job-chief-${queueName}-pod`,
+          // eslint-disable-next-line @typescript-eslint/naming-convention
           labels: { ...labels, 'queue-name': queueName },
         },
         spec: {
@@ -97,7 +99,6 @@ export function createJobSpec(
       periodSeconds: podConfig.liveness.periodSeconds,
       httpGet: {
         path: podConfig.liveness.path,
-        // @ts-expect-error for some reason the type required is object, when docs says its number or string https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.19/#httpgetaction-v1-core
         port: podConfig.liveness.port,
       },
     };
