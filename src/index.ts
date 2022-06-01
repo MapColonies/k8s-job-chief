@@ -26,6 +26,7 @@ void registerExternalValues()
     const app = depContainer.resolve(ServerBuilder).build();
     const shutdownHandler = container.resolve(ShutdownHandler);
     const server = createTerminus(createServer(app), {
+      // eslint-disable-next-line @typescript-eslint/naming-convention
       healthChecks: { '/liveness': livenessCheck },
       onSignal: shutdownHandler.onShutdown.bind(shutdownHandler),
     });

@@ -85,6 +85,7 @@ describe('#createJobSpec', () => {
       kind: 'Job',
       metadata: {
         generateName: 'job-chief-instance-uid-queue-name-',
+        // eslint-disable-next-line @typescript-eslint/naming-convention
         labels: { 'queue-name': 'queue-name', foo: 'bar', baz: 'qux' },
         namespace: 'namespace',
       },
@@ -92,6 +93,7 @@ describe('#createJobSpec', () => {
         parallelism: 1,
         backoffLimit: 0,
         template: {
+          // eslint-disable-next-line @typescript-eslint/naming-convention
           metadata: { name: 'job-chief-queue-name-pod', labels: { foo: 'bar', baz: 'qux', 'queue-name': 'queue-name' } },
           spec: {
             imagePullSecrets: [{}],
