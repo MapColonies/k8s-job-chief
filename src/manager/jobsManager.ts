@@ -24,9 +24,12 @@ export class JobsManager {
     @inject(JOBS_CONFIG_SYMBOL) jobConfigs: JobConfig[]
   ) {
     this.jobMap = jobConfigs.reduce((prev, curr) => prev.set(curr.queueName, { config: curr }), new Map<string, JobObject>());
+    this.logger.info({ msg: 'initiazlied jobs manager with the following config', jobConfigs: jobConfigs, jobsCount: jobConfigs.length });
   }
 
   public async start(): Promise<void> {
+    this.logger.debug({ msg: 'scheduling jobs', count: this.jobMap.keys() });
+
     // start new jobs
     for await (const key of this.jobMap.keys()) {
       await this.scheduler.scheduleJob(key, 0);
@@ -36,11 +39,15 @@ export class JobsManager {
   }
 
   public async stop(): Promise<void> {
+    this.logger.debug({ msg: 'stopping jobs' });
+
     this.abortController.abort();
     await Promise.all(Array.from(this.jobMap.values()).map(({ lifecycleWrapper }) => lifecycleWrapper?.stop()));
   }
 
   private async jobHandler({ name }: { name: string }): Promise<void> {
+    this.logger.debug({ msg: 'handling job', jobName: name });
+
     try {
       const jobObject = this.jobMap.get(name);
 
@@ -51,12 +58,13 @@ export class JobsManager {
       jobObject.lifecycleWrapper = this.jobLifecycleWrapperFactory(jobObject.config);
 
       jobObject.lifecycleWrapper.once('completed', () => {
+        this.logger.debug({ msg: 'job completed', jobName: name });
         jobObject.lifecycleWrapper = undefined;
       });
 
       await jobObject.lifecycleWrapper.start();
     } catch (error) {
-      this.logger.error({ err: error });
+      this.logger.error({ err: error, jobName: name });
       throw error;
     }
   }

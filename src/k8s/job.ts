@@ -39,12 +39,15 @@ export class K8sJob extends TypedEmitter<JobEvents> {
     if (this.name !== undefined) {
       throw new Error('job already started');
     }
+
+    this.logger.debug({ msg: 'attempting to start job', namespace: this.namespace, queueName: this.queueName });
+
     let res: Awaited<ReturnType<typeof this.k8sJobApi.createNamespacedJob>>;
     try {
       res = await this.k8sJobApi.createNamespacedJob(this.namespace, this.jobSpec);
     } catch (error) {
       if (isHttpError(error)) {
-        this.logger.debug(error.body, `createNamespacedJob request for queue ${this.queueName} failed`);
+        this.logger.debug({ err: error, msg: 'k8s createNamespacedJob http request failed', namespace: this.namespace, queueName: this.queueName });
       }
       throw error;
     }
@@ -68,19 +71,30 @@ export class K8sJob extends TypedEmitter<JobEvents> {
     if (this.name === undefined) {
       throw new Error('job not started');
     }
+
+    this.logger.debug({ msg: 'attempting to delete job', namespace: this.namespace, queueName: this.queueName, jobName: this.name });
+
     this.deleted = true;
     try {
       await this.k8sJobApi.deleteNamespacedJob(this.name, this.namespace, undefined, undefined, undefined, undefined, 'Background');
     } catch (error) {
       this.deleted = false;
       if (isHttpError(error)) {
-        this.logger.debug(error.body, `deleteNamespacedJob request for queue ${this.queueName} failed`);
+        this.logger.debug({
+          err: error,
+          msg: 'k8s deleteNamespacedJob http request failed',
+          namespace: this.namespace,
+          queueName: this.queueName,
+          jobName: this.name,
+        });
       }
       throw error;
     }
   }
 
   public async shutdown(): Promise<void> {
+    this.logger.debug({ msg: 'shutting down job', namespace: this.namespace, queueName: this.queueName, jobName: this.name });
+
     this.jobInformer.off('update', this.handleJobInformerUpdateEvent);
     await this.podInformer?.stop();
   }

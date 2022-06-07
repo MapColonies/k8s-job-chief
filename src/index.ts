@@ -44,7 +44,7 @@ void registerExternalValues()
 
     server.listen(port, () => {
       const logger = container.resolve<Logger>(SERVICES.LOGGER);
-      logger.info(`app started on port ${port}`);
+      logger.info({ msg: `app started on port ${port}` });
     });
   })
   .catch(async (error: Error) => {

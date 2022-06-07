@@ -8,7 +8,7 @@ module.exports = {
     },
   },
   coverageReporters: ['text', 'html'],
-  collectCoverage: true,
+  collectCoverage: false,
   collectCoverageFrom: ['<rootDir>/src/**/*.ts', '!*/node_modules/', '!/vendor/**', '!*/common/**', '!**/models/**', '!<rootDir>/src/*'],
   coverageDirectory: '<rootDir>/coverage',
   rootDir: '../../../.',
@@ -22,9 +22,7 @@ module.exports = {
       { multipleReportsUnitePath: './reports', pageTitle: 'integration', publicPath: './reports', filename: 'integration.html' },
     ],
   ],
-  collectCoverage: true,
   moduleDirectories: ['node_modules', 'src'],
-  collectCoverageFrom: ['<rootDir>/src/**/*.{ts}', '!**/node_modules/**', '!**/vendor/**'],
   preset: 'ts-jest',
   testEnvironment: 'node',
   coverageThreshold: {

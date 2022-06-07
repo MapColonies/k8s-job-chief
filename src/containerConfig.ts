@@ -9,7 +9,7 @@ import PgBoss from 'pg-boss';
 import { instancePerContainerCachingFactory, Lifecycle } from 'tsyringe';
 import { JOB_CLEANER_FACTORY, LIVENESS_PROBE_FACTORY, SERVICES, SERVICE_NAME } from './common/constants';
 import { tracing } from './common/tracing';
-import { statsRouterFactory, STATES_ROUTER_SYMBOL } from './httpServer/states/routes/statesRouter';
+import { statesRouterFactory, STATES_ROUTER_SYMBOL } from './httpServer/states/routes/statesRouter';
 import { InjectionObject, registerDependencies } from './common/dependencyRegistration';
 import { DbConfig, pgBossFactory } from './queue/pgbossFactory';
 import { JOB_LABELS_SYMBOL } from './k8s/constants';
@@ -126,7 +126,7 @@ export const registerExternalValues = async (options?: RegisterOptions): Promise
           await provider.startQueue();
         },
       },
-      { token: STATES_ROUTER_SYMBOL, provider: { useFactory: statsRouterFactory } },
+      { token: STATES_ROUTER_SYMBOL, provider: { useFactory: statesRouterFactory } },
       { token: LIVENESS_PROBE_FACTORY, provider: { useFactory: livenessProbeFactory } },
       { token: JOB_CLEANER_FACTORY, provider: { useFactory: jobCleanerFactory } },
     ];
