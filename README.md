@@ -22,7 +22,7 @@ flowchart LR
     H --> B
     F -- no --> H
     D -- no --> H
-    
+
 ```
 When starting the service, all the jobs are loaded into memory based on a configration file.
 Each job will check whether the queue for this specific job contain any items, and if it does, will spawn a Job in the kubernetes cluster. If the queue is empty, nothing will happen, and the queue status will be checked again after a configurable wait time.

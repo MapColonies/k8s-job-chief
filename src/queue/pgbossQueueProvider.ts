@@ -18,13 +18,14 @@ export class PgBossQueueProvider implements QueueProvider {
     @inject(JOBS_CONFIG_SYMBOL) jobsConfig: JobConfig[]
   ) {
     this.jobQueuesNames = new Set(jobsConfig.map((jobConfig) => jobConfig.queueName));
+    this.logger.info({ msg: 'initialized pgboss', jobQueuesNames: this.jobQueuesNames });
   }
 
   public async startQueue(): Promise<void> {
-    this.logger.info('starting pg-boss queue');
+    this.logger.info({ msg: 'starting pgboss queue' });
 
     this.pgBoss.on('error', (err) => {
-      this.logger.error(err, 'pg-boss error');
+      this.logger.error({ err, msg: 'pgboss error occurred' });
     });
     this.pgBoss.on('monitor-states', this.handleMonitorStates);
 
@@ -32,7 +33,7 @@ export class PgBossQueueProvider implements QueueProvider {
   }
 
   public async stopQueue(): Promise<void> {
-    this.logger.info('stopping pg-boss queue');
+    this.logger.info({ msg: 'stopping pgboss queue' });
     await this.pgBoss.stop();
   }
 
@@ -41,6 +42,8 @@ export class PgBossQueueProvider implements QueueProvider {
   }
 
   public async isQueueEmpty(name: string): Promise<boolean> {
+    this.logger.debug({ msg: 'getting queue size', queue: name });
+
     const count = await this.pgBoss.getQueueSize(name);
     return count === 0;
   }
@@ -48,6 +51,8 @@ export class PgBossQueueProvider implements QueueProvider {
   private readonly handleMonitorStates = (states: PgBoss.MonitorStates): void => {
     const newStates: Record<string, QueueStat> = {};
     const entries = Object.entries(states.queues);
+
+    this.logger.debug({ msg: 'monitoring states', statesCount: entries.length });
 
     for (const [name, states] of entries) {
       if (this.jobQueuesNames.has(name)) {

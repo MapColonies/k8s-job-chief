@@ -23,18 +23,34 @@ export class K8sJobCleaner {
     this.namespace = config.get<string>('kubernetes.namespace');
     this.cleanupMaxAge = ms(config.get<string>('kubernetes.jobMaxAgeForDeletion'));
     this.labels = flattenLabels(jobLabels);
+
+    this.logger.info({ msg: 'initialized k8s job cleaner', namespace: this.namespace, cleanupMaxAge: this.cleanupMaxAge, jobLabels });
   }
 
   public async clean(): Promise<void> {
+    let jobsToDeleteNames: string[] = [];
+
     try {
       const result = await this.k8sJobApi.listNamespacedJob(this.namespace, undefined, undefined, undefined, undefined, this.labels);
 
-      const jobsToDeleteNames = result.body.items.filter(this.jobsFilterForDeletion.bind(this)).map((item) => item.metadata?.name as string);
+      jobsToDeleteNames = result.body.items.filter(this.jobsFilterForDeletion.bind(this)).map((item) => item.metadata?.name as string);
 
-      this.logger.info(`job cleanup - deleting ${jobsToDeleteNames.length} jobs`);
+      this.logger.info({
+        msg: 'started job cleanup, deleting jobs',
+        namespace: this.namespace,
+        jobsCount: jobsToDeleteNames.length,
+        jobsToDeleteNames,
+      });
+
       await Promise.all(jobsToDeleteNames.map(async (name) => this.k8sJobApi.deleteNamespacedJob(name, this.namespace)));
     } catch (error) {
-      this.logger.error({ err: error, msg: 'Failed to delete jobs' });
+      this.logger.error({
+        err: error,
+        msg: 'failed to delete one or more of the following jobs',
+        namespace: this.namespace,
+        jobsCount: jobsToDeleteNames.length,
+        jobsToDeleteNames,
+      });
     }
   }
 

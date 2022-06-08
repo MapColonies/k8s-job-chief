@@ -1,4 +1,5 @@
 import PgBoss from 'pg-boss';
+import jsLogger from '@map-colonies/js-logger';
 import { PgBossJobScheduler } from '../../../src/scheduler/pgBossJobScheduler';
 
 describe('pgBossJobScheduler', function () {
@@ -11,7 +12,7 @@ describe('pgBossJobScheduler', function () {
     });
 
     it('should send the job to pgboss', async () => {
-      const scheduler = new PgBossJobScheduler(pgBossMock);
+      const scheduler = new PgBossJobScheduler(pgBossMock, jsLogger({ enabled: false }));
 
       await expect(scheduler.scheduleJob('test', 0)).resolves.not.toThrow();
       // eslint-disable-next-line @typescript-eslint/unbound-method
@@ -29,7 +30,7 @@ describe('pgBossJobScheduler', function () {
     });
 
     it('should call the handler if there is a scheduled job', async () => {
-      const scheduler = new PgBossJobScheduler(pgBossMock as unknown as PgBoss);
+      const scheduler = new PgBossJobScheduler(pgBossMock as unknown as PgBoss, jsLogger({ enabled: false }));
       const handler = jest.fn();
       const abortController = new AbortController();
       pgBossMock.fetch.mockResolvedValue({ id: 'test', name: 'test', data: { name: 'test' } });
@@ -42,7 +43,7 @@ describe('pgBossJobScheduler', function () {
     });
 
     it('should not call the handler if there is no scheduled job', async () => {
-      const scheduler = new PgBossJobScheduler(pgBossMock as unknown as PgBoss);
+      const scheduler = new PgBossJobScheduler(pgBossMock as unknown as PgBoss, jsLogger({ enabled: false }));
       const handler = jest.fn();
       const abortController = new AbortController();
       pgBossMock.fetch.mockResolvedValue(null);
