@@ -2,7 +2,7 @@ openapi: 3.0.1
 info:
   title: k8s-job-chief
   description: service for starting and tracking k8s jobs
-  version: 1.1.0
+  version: 1.1.1
   license:
     name: MIT
     url: https://opensource.org/licenses/MIT

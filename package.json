@@ -1,6 +1,6 @@
 {
   "name": "k8s-job-chief",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "service for starting and tracking k8s jobs",
   "main": "./src/index.ts",
   "scripts": {

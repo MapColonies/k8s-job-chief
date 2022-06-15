@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.1.1](https://github.com/MapColonies/k8s-job-chief/compare/v1.1.0...v1.1.1) (2022-06-15)
+
+
+### Bug Fixes
+
+* liveness setup ([18f961f](https://github.com/MapColonies/k8s-job-chief/commit/18f961fb32cfb30a59ebdee2b8d8faed7b9521a0))
+* liveness setup ([#5](https://github.com/MapColonies/k8s-job-chief/issues/5)) ([d5fee76](https://github.com/MapColonies/k8s-job-chief/commit/d5fee764d4d8c811ae387a2a01383f3955249fa8))
+
 ## [1.1.0](https://github.com/MapColonies/k8s-job-chief/compare/v1.0.0...v1.1.0) (2022-04-27)
 
 
