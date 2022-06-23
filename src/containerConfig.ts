@@ -1,10 +1,11 @@
 import { readFile } from 'fs/promises';
 import config from 'config';
-import { logMethod } from '@map-colonies/telemetry';
+import { getOtelMixin } from '@map-colonies/telemetry';
 import { trace } from '@opentelemetry/api';
 import { DependencyContainer } from 'tsyringe/dist/typings/types';
 import jsLogger, { LoggerOptions } from '@map-colonies/js-logger';
 import { Metrics } from '@map-colonies/telemetry';
+import { metrics } from '@opentelemetry/api-metrics';
 import PgBoss from 'pg-boss';
 import { instancePerContainerCachingFactory, Lifecycle } from 'tsyringe';
 import { JOB_CLEANER_FACTORY, LIVENESS_PROBE_FACTORY, SERVICES, SERVICE_NAME } from './common/constants';
@@ -30,21 +31,18 @@ import { jobCleanerFactory } from './k8s/jobCleanerFactory';
 function getObservabilityDependencies(shutdownHandler: ShutdownHandler): InjectionObject<unknown>[] {
   const loggerConfig = config.get<LoggerOptions>('telemetry.logger');
 
-  // @ts-expect-error the signature is wrong
-  const logger = jsLogger({ ...loggerConfig, hooks: { logMethod } });
+  const logger = jsLogger({ ...loggerConfig, mixin: getOtelMixin() });
 
-  const metrics = new Metrics(SERVICE_NAME);
-  const meter = metrics.start();
-  shutdownHandler.addFunction(metrics.stop.bind(metrics));
+  const otelMetrics = new Metrics();
+  otelMetrics.start();
+  shutdownHandler.addFunction(otelMetrics.stop.bind(otelMetrics));
 
-  tracing.start();
   const tracer = trace.getTracer(SERVICE_NAME);
   shutdownHandler.addFunction(tracing.stop.bind(tracing));
   return [
     { token: SERVICES.LOGGER, provider: { useValue: logger } },
     { token: SERVICES.TRACER, provider: { useValue: tracer } },
-    { token: SERVICES.METER, provider: { useValue: meter } },
-    { token: SERVICES.METRICS, provider: { useValue: metrics } },
+    { token: SERVICES.METER, provider: { useValue: metrics.getMeter(SERVICE_NAME) } },
   ];
 }
 

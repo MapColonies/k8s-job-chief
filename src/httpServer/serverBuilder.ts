@@ -10,6 +10,7 @@ import httpLogger from '@map-colonies/express-access-log-middleware';
 import { SERVICES } from '../common/constants';
 import { IConfig } from '../common/interfaces';
 import { STATES_ROUTER_SYMBOL } from './states/routes/statesRouter';
+import { defaultMetricsMiddleware } from '@map-colonies/telemetry';
 
 @injectable()
 export class ServerBuilder {
@@ -43,6 +44,8 @@ export class ServerBuilder {
   }
 
   private registerPreRoutesMiddleware(): void {
+    this.serverInstance.use('/metrics', defaultMetricsMiddleware());
+
     this.serverInstance.use(httpLogger({ logger: this.logger }));
 
     if (this.config.get<boolean>('server.response.compression.enabled')) {
