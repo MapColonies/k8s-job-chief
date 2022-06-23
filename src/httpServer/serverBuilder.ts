@@ -4,13 +4,13 @@ import compression from 'compression';
 import { OpenapiViewerRouter, OpenapiRouterConfig } from '@map-colonies/openapi-express-viewer';
 import { getErrorHandlerMiddleware } from '@map-colonies/error-express-handler';
 import { middleware as OpenApiMiddleware } from 'express-openapi-validator';
+import { defaultMetricsMiddleware } from '@map-colonies/telemetry';
 import { inject, injectable } from 'tsyringe';
 import { Logger } from '@map-colonies/js-logger';
 import httpLogger from '@map-colonies/express-access-log-middleware';
 import { SERVICES } from '../common/constants';
 import { IConfig } from '../common/interfaces';
 import { STATES_ROUTER_SYMBOL } from './states/routes/statesRouter';
-import { defaultMetricsMiddleware } from '@map-colonies/telemetry';
 
 @injectable()
 export class ServerBuilder {
